@@ -6,11 +6,13 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "prop"
     gem.summary = %Q{Puts a cork in their requests}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.description = %Q{A gem for implementing rate limiting}
     gem.email = "morten@zendesk.com"
     gem.homepage = "http://github.com/morten/prop"
     gem.authors = ["Morten Primdahl"]
-    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
+    gem.add_development_dependency "shoulda", ">= 0"
+    gem.add_development_dependency "mocha", ">= 0.9.8"
+    gem.add_dependency('moneta', '0.6.0')
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new

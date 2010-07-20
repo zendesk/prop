@@ -1,6 +1,29 @@
-= prop
 
-Description goes here.
+= Prop
+
+Prop is a simple gem for rate limiting requests of any kind. It allows you to configure hooks for registering certain actions, such that you can define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
+
+To get going with RateLimiter you first define the store. The arguments are passed verbatim to Moneta, and hence you can defined a memcached store as follows:
+
+  Prop.store = Moneta::Memcache.new(:server => '127.0.0.1')
+
+Once the store is in place, you can optionally define some preconfigured thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
+
+  Prop.configure(:mails_per_hour, :threshold => 100, :interval => 1.hour)
+
+In your application, associate this threshold with a given sender by passing the sender email address as key:
+
+  Prop.mails_per_hour(mail.from)
+
+If this method gets called more than 100 times (threshold) within 1 hour (interval in seconds) Prop throws a Prop::RateLimitExceededError.
+
+These threshold methods can also be invoked without a key, in which case they act as if the key is the empty string.
+
+Lastly you can use Prop without registering the thresholds up front, you do this by calling the throttle! method:
+
+  Prop.throttle!(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
+
+It's up to you to pass an appropriate key which reflects the scope you're rate limiting.
 
 == Note on Patches/Pull Requests
  
