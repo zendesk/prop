@@ -15,7 +15,7 @@ class Prop
     end
 
     def throttle!(options)
-      cache_key = "#{options[:key]}/#{Time.now.to_i / options[:interval]}"
+      cache_key = "prop/#{options[:key]}/#{Time.now.to_i / options[:interval]}"
       counter   = store[cache_key].to_i
 
       if counter >= options[:threshold]
