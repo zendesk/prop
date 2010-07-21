@@ -21,7 +21,13 @@ Once the read and write operations are defined, you can optionally define some p
 
 This results in a the following methods being generated:
 
+  # Throws Prop::RateLimitExceededError if the threshold/interval has been reached
   Prop.throttle_mails_per_hour!
+
+  # Returns true if the threshold/interval has been reached
+  Prop.throttle_mails_per_hour?
+
+  # Sets the counter to 0
   Prop.reset_mails_per_hour
 
 In many cases you will want to tie a specific key to a defined throttle, for example you can scope the throttling to a specific sender rather than running a global "mails per hour" throttle:
