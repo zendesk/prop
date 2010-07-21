@@ -38,7 +38,7 @@ If this method gets called more than "threshold" times within "interval in secon
 
 You can chose to override the threshold for a given key:
 
-  Prop.mails_per_hour(mail.from, :threshold => account.mail_throttle_threshold)
+  Prop.throttle_mails_per_hour!(mail.from, :threshold => account.mail_throttle_threshold)
 
 If you wish to reset a specific throttle, you can do that like so:
 
@@ -49,7 +49,9 @@ When the threshold are invoked without argument, the key is nil and as such a sc
 Lastly you can use Prop without registering the thresholds up front:
 
   Prop.throttle!(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
+  Prop.throttle?(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
   Prop.reset(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
+  Prop.count(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
 
 It's up to you to pass an appropriate key which reflects the scope you're rate limiting. The interval is tied to the underlying key generating mechanism, so if you change that between calls and have all other things equal, then that will result in different throttles being set.
 
