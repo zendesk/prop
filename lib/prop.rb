@@ -39,18 +39,16 @@ class Prop
     end
 
     def throttle?(options)
-      cache_key = sanitized_prop_key(options)
-      reader.call(cache_key).to_i >= options[:threshold]
+      count(options) >= options[:threshold]
     end
 
     def throttle!(options)
-      cache_key = sanitized_prop_key(options)
-      counter   = reader.call(cache_key).to_i
+      counter = count(options)
 
       if counter >= options[:threshold]
         raise Prop::RateLimitExceededError.new("#{options[:key]} threshold #{options[:threshold]} exceeded")
       else
-        writer.call(cache_key, counter + 1)
+        writer.call(sanitized_prop_key(options), counter + 1)
       end
     end
 
