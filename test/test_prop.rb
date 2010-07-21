@@ -1,20 +1,14 @@
 require 'helper'
-require 'moneta'
-require 'moneta/memory'
 
 class TestProp < Test::Unit::TestCase
 
   context "Prop" do
     setup do
-      Prop.store = Moneta::Memory.new
+      store = {}
+      Prop.read  { |key| store[key] }
+      Prop.write { |key, value| store[key] = value }
     end
 
-    should "wrap a Moneta store" do
-      assert Prop.store
-      Prop.store['hello'] = 'world'
-      assert_equal Prop.store['hello'], 'world'
-    end
-    
     context "#configure" do
       should "raise errors on invalid configuation" do
         assert_raises(RuntimeError) do
@@ -25,7 +19,7 @@ class TestProp < Test::Unit::TestCase
           Prop.configure :hello_there, :threshold => 'wibble', :interval => 100
         end
       end
-      
+
       should "accept a handle and an options hash" do
         Prop.configure :hello_there, :threshold => 40, :interval => 100
         assert Prop.handles

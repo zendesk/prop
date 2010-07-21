@@ -3,8 +3,15 @@ class Prop
   end
 
   class << self
-    attr_accessor :store
-    attr_accessor :handles
+    attr_accessor :handles, :reader, :writer
+
+    def read(&blk)
+      self.reader = blk
+    end
+    
+    def write(&blk)
+      self.writer = blk
+    end
 
     def configure(handle, options)
       raise RuntimeError.new("Invalid threshold setting") unless options[:threshold].to_i > 0
@@ -16,12 +23,12 @@ class Prop
 
     def throttle!(options)
       cache_key = "prop/#{options[:key]}/#{Time.now.to_i / options[:interval]}"
-      counter   = store[cache_key].to_i
+      counter   = reader.call(cache_key).to_i
 
       if counter >= options[:threshold]
         raise Prop::RateLimitExceededError.new("#{options[:key]} threshold #{options[:threshold]} exceeded")
       else
-        store[cache_key] = counter + 1
+        writer.call(cache_key, counter + 1)
       end
     end
 

@@ -3,11 +3,19 @@
 
 Prop is a simple gem for rate limiting requests of any kind. It allows you to configure hooks for registering certain actions, such that you can define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
 
-To get going with RateLimiter you first define the store. The arguments are passed verbatim to Moneta, and hence you can defined a memcached store as follows:
+To get going with Prop you first define the read and write operations. These define how you write a registered request and how to read the number of requests for a given action. For example:
 
-  Prop.store = Moneta::Memcache.new(:server => '127.0.0.1')
+  Prop.read do |key|
+    Rails.cache.read(key)
+  end
 
-Once the store is in place, you can optionally define some preconfigured thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
+  Prop.write do |key, value|
+    Rails.cache.write(key, value)
+  end
+
+You can choose to rely on the database or Moneta or Redis or whatever you'd like to use for transient storage. Prop does not do any sort of clean up of its key space, so you would have to implement that manually should you be using anything but an LRU cache.
+
+Once the read and write operations are defined, you can optionally define some preconfigured thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
 
   Prop.configure(:mails_per_hour, :threshold => 100, :interval => 1.hour)
 

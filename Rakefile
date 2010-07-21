@@ -12,7 +12,6 @@ begin
     gem.authors = ["Morten Primdahl"]
     gem.add_development_dependency "shoulda", ">= 0"
     gem.add_development_dependency "mocha", ">= 0.9.8"
-    gem.add_dependency('moneta', '0.6.0')
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
