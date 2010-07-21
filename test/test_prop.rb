@@ -12,21 +12,21 @@ class TestProp < Test::Unit::TestCase
     context "#configure" do
       should "raise errors on invalid configuation" do
         assert_raises(RuntimeError) do
-          Prop.configure :hello_there, :threshold => 20, :interval => 'hello'
+          Prop.setup :hello_there, :threshold => 20, :interval => 'hello'
         end
 
         assert_raises(RuntimeError) do
-          Prop.configure :hello_there, :threshold => 'wibble', :interval => 100
+          Prop.setup :hello_there, :threshold => 'wibble', :interval => 100
         end
       end
 
       should "accept a handle and an options hash" do
-        Prop.configure :hello_there, :threshold => 40, :interval => 100
+        Prop.setup :hello_there, :threshold => 40, :interval => 100
         assert Prop.respond_to?(:throttle_hello_there!)
       end
 
       should "result in a default handle" do
-        Prop.configure :hello_there, :threshold => 4, :interval => 10
+        Prop.setup :hello_there, :threshold => 4, :interval => 10
         4.times do |i|
           assert_equal (i + 1), Prop.throttle_hello_there!('some key')
         end
@@ -37,7 +37,7 @@ class TestProp < Test::Unit::TestCase
       end
 
       should "create a handle accepts integer keys" do
-        Prop.configure :hello_there, :threshold => 4, :interval => 10
+        Prop.setup :hello_there, :threshold => 4, :interval => 10
         assert Prop.throttle_hello_there!(5)
       end
 
@@ -50,7 +50,7 @@ class TestProp < Test::Unit::TestCase
       setup do
         @start = Time.now
         Time.stubs(:now).returns(@start)
-        Prop.configure :hello, :threshold => 10, :interval => 10
+        Prop.setup :hello, :threshold => 10, :interval => 10
 
         5.times do |i|
           assert_equal (i + 1), Prop.throttle_hello!
