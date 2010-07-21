@@ -26,24 +26,21 @@ class Prop
       raise RuntimeError.new("Invalid interval setting") unless defaults[:interval].to_i > 0
 
       define_prop_class_method "throttle_#{handle}!" do |*args|
-        key  = handle.to_s
-        key << "/#{args.first}" if args.first
+        throttle!(sanitized_prop_options(handle, args, defaults))
+      end
 
-        options = { :key => key, :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }
-        options = options.merge(args.last) if args.last.is_a?(Hash)
-
-        throttle!(options)
+      define_prop_class_method "throttle_#{handle}?" do |*args|
+        throttle?(sanitized_prop_options(handle, args, defaults))
       end
 
       define_prop_class_method "reset_#{handle}" do |*args|
-        key  = handle.to_s
-        key << "/#{args.first}" if args.first
-
-        options = { :key => key, :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }
-        options = options.merge(args.last) if args.last.is_a?(Hash)
-
-        reset(options)
+        reset(sanitized_prop_options(handle, args, defaults))
       end
+    end
+
+    def throttle?(options)
+      cache_key = sanitized_prop_key(options)
+      reader.call(cache_key).to_i >= options[:threshold]
     end
 
     def throttle!(options)
@@ -62,11 +59,25 @@ class Prop
       writer.call(cache_key, 0)
     end
 
+    def count(options)
+      cache_key = sanitized_prop_key(options)
+      reader.call(cache_key).to_i
+    end
+
     private
 
     def sanitized_prop_key(options)
       cache_key = "#{options[:key]}/#{Time.now.to_i / options[:interval]}"
       "prop/#{Digest::MD5.hexdigest(cache_key)}"
+    end
+    
+    def sanitized_prop_options(handle, args, defaults)
+      key  = handle.to_s
+      key << "/#{args.first}" if args.first
+
+      options = { :key => key, :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }
+      options = options.merge(args.last) if args.last.is_a?(Hash)
+      options
     end
   end
 end

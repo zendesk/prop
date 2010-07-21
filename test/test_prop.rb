@@ -7,6 +7,9 @@ class TestProp < Test::Unit::TestCase
       store = {}
       Prop.read  { |key| store[key] }
       Prop.write { |key, value| store[key] = value }
+
+      @start = Time.now
+      Time.stubs(:now).returns(@start)
     end
 
     context "#configure" do
@@ -32,7 +35,6 @@ class TestProp < Test::Unit::TestCase
         end
 
         assert_raises(Prop::RateLimitExceededError) { Prop.throttle_hello_there!('some key') }
-
         assert_equal 5, Prop.throttle_hello_there!('some key', :threshold => 20)
       end
 
@@ -48,8 +50,6 @@ class TestProp < Test::Unit::TestCase
 
     context "#reset" do
       setup do
-        @start = Time.now
-        Time.stubs(:now).returns(@start)
         Prop.setup :hello, :threshold => 10, :interval => 10
 
         5.times do |i|
@@ -70,17 +70,22 @@ class TestProp < Test::Unit::TestCase
       end
 
       should "be directly invokable" do
-        Prop.reset(:key => :hello, :threshold => 10, :interval => 10)
+        Prop.reset :key => :hello, :threshold => 10, :interval => 10
         assert_equal 1, Prop.throttle_hello!
       end
     end
 
-    context "#throttle!" do
-      setup do
-        @start = Time.now
-        Time.stubs(:now).returns(@start)
-      end
+    context "#throttle?" do
+      should "return true once the threshold has been reached" do
+        Prop.throttle!(:key => 'hello', :threshold => 2, :interval => 10)
+        assert !Prop.throttle?(:key => 'hello', :threshold => 2, :interval => 10)
 
+        Prop.throttle!(:key => 'hello', :threshold => 2, :interval => 10)
+        assert Prop.throttle?(:key => 'hello', :threshold => 2, :interval => 10)
+      end
+    end
+
+    context "#throttle!" do
       should "increment counter correctly" do
         3.times do |i|
           assert_equal (i + 1), Prop.throttle!(:key => 'hello', :threshold => 10, :interval => 10)
@@ -97,6 +102,14 @@ class TestProp < Test::Unit::TestCase
         3.times do |i|
           assert_equal (i + 1), Prop.throttle!(:key => 'hello', :threshold => 10, :interval => 10)
         end
+      end
+
+      should "not increment the counter beyon the threshold" do
+        10.times do |i|
+          Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10) rescue nil
+        end
+
+        assert_equal 5, Prop.count(:key => 'hello', :threshold => 5, :interval => 10)
       end
 
       should "raise Prop::RateLimitExceededError when the threshold is exceeded" do
