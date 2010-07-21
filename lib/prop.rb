@@ -1,5 +1,11 @@
 require 'digest/md5'
 
+class Object
+  def define_prop_class_method(name, &blk)
+    (class << self; self; end).instance_eval { define_method(name, &blk) }
+  end
+end
+
 class Prop
   class RateLimitExceededError < RuntimeError
   end
@@ -15,12 +21,29 @@ class Prop
       self.writer = blk
     end
 
-    def configure(handle, options)
-      raise RuntimeError.new("Invalid threshold setting") unless options[:threshold].to_i > 0
-      raise RuntimeError.new("Invalid interval setting") unless options[:interval].to_i > 0
+    def setup(handle, defaults)
+      raise RuntimeError.new("Invalid threshold setting") unless defaults[:threshold].to_i > 0
+      raise RuntimeError.new("Invalid interval setting") unless defaults[:interval].to_i > 0
 
-      self.handles ||= {}
-      self.handles[handle] = options
+      define_prop_class_method "throttle_#{handle}!" do |*args|
+        key  = handle.to_s
+        key << "/#{args.first}" if args.first
+
+        options = { :key => key, :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }
+        options = options.merge(args.last) if args.last.is_a?(Hash)
+
+        throttle!(options)
+      end
+
+      define_prop_class_method "reset_#{handle}" do |*args|
+        key  = handle.to_s
+        key << "/#{args.first}" if args.first
+
+        options = { :key => key, :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }
+        options = options.merge(args.last) if args.last.is_a?(Hash)
+
+        reset(options)
+      end
     end
 
     def throttle!(options)
@@ -37,24 +60,6 @@ class Prop
     def reset(options)
       cache_key = sanitized_prop_key(options)
       writer.call(cache_key, 0)
-    end
-
-    def method_missing(handle, *arguments, &block)
-      self.handles ||= {}
-
-      if handle.to_s =~ /^reset_(.+)/ && options = handles[$1.to_sym]
-        params = { :key => "#{$1}#{"/#{arguments.first}" if arguments.first}" }
-        params.merge!(arguments.last) if arguments.last.is_a?(Hash)
-
-        return reset(options.merge(params))
-      elsif options = handles[handle]
-        params = { :key => "#{handle}#{"/#{arguments.first}" if arguments.first}" }
-        params.merge!(arguments.last) if arguments.last.is_a?(Hash)
-
-        return throttle!(options.merge(params))
-      end
-
-      super
     end
 
     private
