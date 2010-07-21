@@ -1,3 +1,5 @@
+require 'digest/md5'
+
 class Prop
   class RateLimitExceededError < RuntimeError
   end
@@ -8,7 +10,7 @@ class Prop
     def read(&blk)
       self.reader = blk
     end
-    
+
     def write(&blk)
       self.writer = blk
     end
@@ -22,7 +24,7 @@ class Prop
     end
 
     def throttle!(options)
-      cache_key = "prop/#{options[:key]}/#{Time.now.to_i / options[:interval]}"
+      cache_key = sanitized_prop_key("#{options[:key]}/#{Time.now.to_i / options[:interval]}")
       counter   = reader.call(cache_key).to_i
 
       if counter >= options[:threshold]
@@ -39,6 +41,12 @@ class Prop
       else
         super
       end
+    end
+
+    private
+
+    def sanitized_prop_key(key)
+      "prop/#{Digest::MD5.hexdigest(key)}"
     end
   end
 end

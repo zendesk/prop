@@ -27,8 +27,17 @@ class TestProp < Test::Unit::TestCase
         assert_equal Prop.handles.values.first, { :threshold => 40, :interval => 100 }
         assert Prop.hello_there
       end
+
+      should "result in a responsive handle" do
+        Prop.configure :hello_there, :threshold => 4, :interval => 10
+        4.times do
+          Prop.hello_there('some key')
+        end
+
+        assert_raises(Prop::RateLimitExceededError) { Prop.hello_there('some key') }
+      end
     end
-    
+
     context "#throttle!" do
       setup do
         @start = Time.now
@@ -52,13 +61,13 @@ class TestProp < Test::Unit::TestCase
           assert_equal (i + 1), Prop.throttle!(:key => 'hello', :threshold => 10, :interval => 10)
         end
       end
-      
+
       should "raise Prop::RateLimitExceededError when the threshold is exceeded" do
         5.times do |i|
           Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10)
         end
         assert_raises(Prop::RateLimitExceededError) do
-          puts Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10)
+          Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10)
         end
       end
     end
