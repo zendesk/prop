@@ -28,15 +28,17 @@ class TestProp < Test::Unit::TestCase
         assert Prop.hello_there
       end
 
-      should "result in a responsive handle" do
+      should "result in a default handle" do
         Prop.configure :hello_there, :threshold => 4, :interval => 10
-        4.times do
-          Prop.hello_there('some key')
+        4.times do |i|
+          assert_equal (i + 1), Prop.hello_there('some key')
         end
 
         assert_raises(Prop::RateLimitExceededError) { Prop.hello_there('some key') }
+
+        assert_equal 5, Prop.hello_there('some key', :threshold => 20)
       end
-      
+
       should "create a handle accepts integer keys" do
         Prop.configure :hello_there, :threshold => 4, :interval => 10
         assert Prop.hello_there(5)
@@ -109,6 +111,6 @@ class TestProp < Test::Unit::TestCase
         end
       end
     end
-    
+
   end
 end

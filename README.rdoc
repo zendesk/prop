@@ -15,7 +15,7 @@ To get going with Prop you first define the read and write operations. These def
 
 You can choose to rely on the database or Moneta or Redis or whatever you'd like to use for transient storage. Prop does not do any sort of clean up of its key space, so you would have to implement that manually should you be using anything but an LRU cache.
 
-Once the read and write operations are defined, you can optionally define some preconfigured thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
+Once the read and write operations are defined, you can optionally define some preconfigured default thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
 
   Prop.configure(:mails_per_hour, :threshold => 100, :interval => 1.hour)
 
@@ -23,13 +23,15 @@ In your application, associate this threshold with a given sender by passing the
 
   Prop.mails_per_hour(mail.from)
 
+If this method gets called more than "threshold" times within "interval in seconds" Prop throws a Prop::RateLimitExceededError. You can chose to override the threshold for a given key:
+
+  Prop.mails_per_hour(mail.from, :threshold => account.mail_throttle_threshold)
+
 If you wish to reset a specific throttle, you can do that like so:
 
   Prop.reset_mails_per_hour(mail.from)
 
-If this method gets called more than 100 times (threshold) within 1 hour (interval in seconds) Prop throws a Prop::RateLimitExceededError.
-
-These threshold methods can also be invoked without a key, in which case they act as if the key is the empty string.
+These threshold methods can also be invoked without a key argument, in which case they act as if the key is nil.
 
 Lastly you can use Prop without registering the thresholds up front:
 

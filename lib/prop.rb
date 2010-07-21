@@ -43,9 +43,15 @@ class Prop
       self.handles ||= {}
 
       if handle.to_s =~ /^reset_(.+)/ && options = handles[$1.to_sym]
-        return reset(options.merge(:key => "#{$1}#{"/#{arguments.first}" if arguments.first}"))
+        params = { :key => "#{$1}#{"/#{arguments.first}" if arguments.first}" }
+        params.merge!(arguments.last) if arguments.last.is_a?(Hash)
+
+        return reset(options.merge(params))
       elsif options = handles[handle]
-        return throttle!(options.merge(:key => "#{handle}#{"/#{arguments.first}" if arguments.first}"))
+        params = { :key => "#{handle}#{"/#{arguments.first}" if arguments.first}" }
+        params.merge!(arguments.last) if arguments.last.is_a?(Hash)
+
+        return throttle!(options.merge(params))
       end
 
       super
