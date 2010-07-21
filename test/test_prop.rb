@@ -36,6 +36,10 @@ class TestProp < Test::Unit::TestCase
 
         assert_raises(Prop::RateLimitExceededError) { Prop.hello_there('some key') }
       end
+
+      should "not shadow undefined methods" do
+        assert_raises(NoMethodError) { Prop.no_such_handle }
+      end
     end
 
     context "#throttle!" do
