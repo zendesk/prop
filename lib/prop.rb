@@ -43,9 +43,9 @@ class Prop
       self.handles ||= {}
 
       if handle.to_s =~ /^reset_(.+)/ && options = handles[$1.to_sym]
-        return reset(options.merge(:key => "#{$1}#{'/' + arguments.first if arguments.first}"))
+        return reset(options.merge(:key => "#{$1}#{"/#{arguments.first}" if arguments.first}"))
       elsif options = handles[handle]
-        return throttle!(options.merge(:key => "#{handle}#{'/' + arguments.first if arguments.first}"))
+        return throttle!(options.merge(:key => "#{handle}#{"/#{arguments.first}" if arguments.first}"))
       end
 
       super

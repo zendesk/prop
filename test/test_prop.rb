@@ -36,6 +36,11 @@ class TestProp < Test::Unit::TestCase
 
         assert_raises(Prop::RateLimitExceededError) { Prop.hello_there('some key') }
       end
+      
+      should "create a handle accepts integer keys" do
+        Prop.configure :hello_there, :threshold => 4, :interval => 10
+        assert Prop.hello_there(5)
+      end
 
       should "not shadow undefined methods" do
         assert_raises(NoMethodError) { Prop.no_such_handle }
