@@ -42,6 +42,35 @@ class TestProp < Test::Unit::TestCase
       end
     end
 
+    context "#reset" do
+      setup do
+        @start = Time.now
+        Time.stubs(:now).returns(@start)
+        Prop.configure :hello, :threshold => 10, :interval => 10
+
+        5.times do |i|
+          assert_equal (i + 1), Prop.hello
+        end
+      end
+
+      should "set the correct counter to 0" do
+        Prop.hello('wibble')
+        Prop.hello('wibble')
+
+        Prop.reset_hello
+        assert_equal 1, Prop.hello
+
+        assert_equal 3, Prop.hello('wibble')
+        Prop.reset_hello('wibble')
+        assert_equal 1, Prop.hello('wibble')
+      end
+
+      should "be directly invokable" do
+        Prop.reset(:key => :hello, :threshold => 10, :interval => 10)
+        assert_equal 1, Prop.hello
+      end
+    end
+
     context "#throttle!" do
       setup do
         @start = Time.now
@@ -75,5 +104,6 @@ class TestProp < Test::Unit::TestCase
         end
       end
     end
+    
   end
 end

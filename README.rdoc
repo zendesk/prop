@@ -3,7 +3,7 @@
 
 Prop is a simple gem for rate limiting requests of any kind. It allows you to configure hooks for registering certain actions, such that you can define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
 
-To get going with Prop you first define the read and write operations. These define how you write a registered request and how to read the number of requests for a given action. For example:
+To get going with Prop you first define the read and write operations. These define how you write a registered request and how to read the number of requests for a given action. For example do something like the below in a Rails initializer:
 
   Prop.read do |key|
     Rails.cache.read(key)
@@ -23,13 +23,18 @@ In your application, associate this threshold with a given sender by passing the
 
   Prop.mails_per_hour(mail.from)
 
+If you wish to reset a specific throttle, you can do that like so:
+
+  Prop.reset_mails_per_hour(mail.from)
+
 If this method gets called more than 100 times (threshold) within 1 hour (interval in seconds) Prop throws a Prop::RateLimitExceededError.
 
 These threshold methods can also be invoked without a key, in which case they act as if the key is the empty string.
 
-Lastly you can use Prop without registering the thresholds up front, you do this by calling the throttle! method:
+Lastly you can use Prop without registering the thresholds up front:
 
   Prop.throttle!(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
+  Prop.reset(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
 
 It's up to you to pass an appropriate key which reflects the scope you're rate limiting.
 
