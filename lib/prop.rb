@@ -8,6 +8,14 @@ end
 
 class Prop
   class RateLimitExceededError < RuntimeError
+    attr_reader :root_message, :retry_after
+
+    def initialize(key, threshold, message)
+      @root_message = "#{key} threshold #{threshold} exceeded"
+      @retry_after  = Time.now.to_i % threshold.to_i
+
+      super(message || @root_message)
+    end
   end
 
   class << self
@@ -46,7 +54,7 @@ class Prop
       counter = count(options)
 
       if counter >= options[:threshold]
-        raise Prop::RateLimitExceededError.new("#{options[:key]} threshold #{options[:threshold]} exceeded")
+        raise Prop::RateLimitExceededError.new(options[:key], options[:threshold], options[:message])
       else
         writer.call(sanitized_prop_key(options), counter + 1)
       end
@@ -73,7 +81,10 @@ class Prop
     # Sanitizes the option set and sets defaults
     def sanitized_prop_options(args, defaults)
       options = args.last.is_a?(Hash) ? args.pop : {}
-      { :key => normalize_cache_key(args), :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }.merge(options)
+      return {
+        :key => normalize_cache_key(args), :message => defaults[:message],
+        :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i
+      }.merge(options)
     end
 
     # Simple key expansion only supports arrays and primitives

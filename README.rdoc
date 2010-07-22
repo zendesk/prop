@@ -34,7 +34,15 @@ In many cases you will want to tie a specific key to a defined throttle, for exa
 
   Prop.throttle_mails_per_hour!(mail.from)
 
-If this method gets called more than "threshold" times within "interval in seconds" Prop throws a Prop::RateLimitExceededError. 
+If this method gets called more than "threshold" times within "interval in seconds" Prop throws a Prop::RateLimitExceededError. You can change the message of this error, which is handy when you are using Prop in multiple locations and want to be able to differentiate further up the stack. For example:
+
+  Prop.setup(:logins, :threshold => 5, :interval => 5.minutes, :message => "Too many invalid login attempts.")
+
+In Rails you can use this in e.g. ApplicationController:
+
+  rescue_from Prop::RateLimitExceededError do |exception|
+    render :status => 403, :message => exception.message
+  end
 
 You can chose to override the threshold for a given key:
 

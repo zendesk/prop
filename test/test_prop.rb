@@ -126,6 +126,15 @@ class TestProp < Test::Unit::TestCase
         assert_raises(Prop::RateLimitExceededError) do
           Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10)
         end
+
+        begin
+          Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10, :message => "Wibble")
+          fail
+        rescue Prop::RateLimitExceededError => e
+          assert_equal "Wibble", e.message
+          assert_equal "hello threshold 5 exceeded", e.root_message
+          assert e.retry_after
+        end
       end
     end
 
