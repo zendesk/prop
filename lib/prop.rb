@@ -26,15 +26,15 @@ class Prop
       raise RuntimeError.new("Invalid interval setting") unless defaults[:interval].to_i > 0
 
       define_prop_class_method "throttle_#{handle}!" do |*args|
-        throttle!(sanitized_prop_options(handle, args, defaults))
+        throttle!(sanitized_prop_options([ handle ] + args, defaults))
       end
 
       define_prop_class_method "throttle_#{handle}?" do |*args|
-        throttle?(sanitized_prop_options(handle, args, defaults))
+        throttle?(sanitized_prop_options([ handle ] + args, defaults))
       end
 
       define_prop_class_method "reset_#{handle}" do |*args|
-        reset(sanitized_prop_options(handle, args, defaults))
+        reset(sanitized_prop_options([ handle ] + args, defaults))
       end
     end
 
@@ -71,13 +71,9 @@ class Prop
     end
 
     # Sanitizes the option set and sets defaults
-    def sanitized_prop_options(handle, args, defaults)
-      key  = handle.to_s
-      key << "/#{normalize_cache_key(args.first)}" if args.first
-
-      options = { :key => key, :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }
-      options = options.merge(args.last) if args.last.is_a?(Hash)
-      options
+    def sanitized_prop_options(args, defaults)
+      options = args.last.is_a?(Hash) ? args.pop : {}
+      { :key => normalize_cache_key(args), :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }.merge(options)
     end
 
     # Simple key expansion only supports arrays and primitives

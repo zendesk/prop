@@ -46,8 +46,8 @@ class TestProp < Test::Unit::TestCase
         assert_equal 2, Prop.throttle_hello_there!(5)
         assert_equal 1, Prop.throttle_hello_there!('mister')
         assert_equal 2, Prop.throttle_hello_there!('mister')
-        assert_equal 1, Prop.throttle_hello_there!(['mister', 5])
-        assert_equal 2, Prop.throttle_hello_there!(['mister', 5])
+        assert_equal 1, Prop.throttle_hello_there!('mister', 5)
+        assert_equal 2, Prop.throttle_hello_there!('mister', 5)
       end
 
       should "not shadow undefined methods" do
