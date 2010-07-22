@@ -8,13 +8,15 @@ end
 
 class Prop
   class RateLimitExceededError < RuntimeError
-    attr_reader :root_message, :retry_after
+    attr_accessor :root_message, :retry_after
 
-    def initialize(key, threshold, message)
-      @root_message = "#{key} threshold #{threshold} exceeded"
-      @retry_after  = Time.now.to_i % threshold.to_i
+    def self.create(key, threshold, message)
+      default = "#{key} threshold #{threshold} exceeded"
+      error   = new(message || default)
+      error.retry_after  = threshold - Time.now.to_i % threshold
+      error.root_message = default
 
-      super(message || @root_message)
+      raise error
     end
   end
 
@@ -54,7 +56,7 @@ class Prop
       counter = count(options)
 
       if counter >= options[:threshold]
-        raise Prop::RateLimitExceededError.new(options[:key], options[:threshold], options[:message])
+        raise Prop::RateLimitExceededError.create(options[:key], options[:threshold], options[:message])
       else
         writer.call(sanitized_prop_key(options), counter + 1)
       end
