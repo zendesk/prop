@@ -64,18 +64,30 @@ class Prop
 
     private
 
+    # Builds the expiring cache key
     def sanitized_prop_key(options)
-      cache_key = "#{options[:key]}/#{Time.now.to_i / options[:interval]}"
+      cache_key = "#{normalize_cache_key(options[:key])}/#{Time.now.to_i / options[:interval]}"
       "prop/#{Digest::MD5.hexdigest(cache_key)}"
     end
-    
+
+    # Sanitizes the option set and sets defaults
     def sanitized_prop_options(handle, args, defaults)
       key  = handle.to_s
-      key << "/#{args.first}" if args.first
+      key << "/#{normalize_cache_key(args.first)}" if args.first
 
       options = { :key => key, :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i }
       options = options.merge(args.last) if args.last.is_a?(Hash)
       options
     end
+
+    # Simple key expansion only supports arrays and primitives
+    def normalize_cache_key(key)
+      if key.is_a?(Array)
+        key.map { |part| normalize_cache_key(part) }.join('/')
+      else
+        key.to_s
+      end
+    end
+
   end
 end

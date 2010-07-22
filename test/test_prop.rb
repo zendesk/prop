@@ -26,6 +26,8 @@ class TestProp < Test::Unit::TestCase
       should "accept a handle and an options hash" do
         Prop.setup :hello_there, :threshold => 40, :interval => 100
         assert Prop.respond_to?(:throttle_hello_there!)
+        assert Prop.respond_to?(:throttle_hello_there?)
+        assert Prop.respond_to?(:reset_hello_there)
       end
 
       should "result in a default handle" do
@@ -38,9 +40,14 @@ class TestProp < Test::Unit::TestCase
         assert_equal 5, Prop.throttle_hello_there!('some key', :threshold => 20)
       end
 
-      should "create a handle accepts integer keys" do
+      should "create a handle accepts various cache key types" do
         Prop.setup :hello_there, :threshold => 4, :interval => 10
-        assert Prop.throttle_hello_there!(5)
+        assert_equal 1, Prop.throttle_hello_there!(5)
+        assert_equal 2, Prop.throttle_hello_there!(5)
+        assert_equal 1, Prop.throttle_hello_there!('mister')
+        assert_equal 2, Prop.throttle_hello_there!('mister')
+        assert_equal 1, Prop.throttle_hello_there!(['mister', 5])
+        assert_equal 2, Prop.throttle_hello_there!(['mister', 5])
       end
 
       should "not shadow undefined methods" do
