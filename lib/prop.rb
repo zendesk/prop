@@ -13,7 +13,7 @@ class Prop
     def self.create(key, threshold, message)
       default = "#{key} threshold #{threshold} exceeded"
       error   = new(message || default)
-      error.retry_after  = threshold - Time.now.to_i % threshold
+      error.retry_after  = threshold - Time.now.to_i % threshold if threshold > 0
       error.root_message = default
 
       raise error
@@ -46,6 +46,10 @@ class Prop
       define_prop_class_method "reset_#{handle}" do |*args|
         reset(sanitized_prop_options([ handle ] + args, defaults))
       end
+
+      define_prop_class_method "count_#{handle}" do |*args|
+        count(sanitized_prop_options([ handle ] + args, defaults))
+      end
     end
 
     def throttle?(options)
@@ -56,6 +60,9 @@ class Prop
       counter = count(options)
 
       if counter >= options[:threshold]
+        if options[:progressive]
+          writer.call(sanitized_prop_key(options.merge(:window_modifier => 1)), counter) 
+        end
         raise Prop::RateLimitExceededError.create(options[:key], options[:threshold], options[:message])
       else
         writer.call(sanitized_prop_key(options), counter + 1)
@@ -76,7 +83,8 @@ class Prop
 
     # Builds the expiring cache key
     def sanitized_prop_key(options)
-      cache_key = "#{normalize_cache_key(options[:key])}/#{Time.now.to_i / options[:interval]}"
+      window    = (Time.now.to_i / options[:interval]) + options[:window_modifier].to_i
+      cache_key = "#{normalize_cache_key(options[:key])}/#{ window }"
       "prop/#{Digest::MD5.hexdigest(cache_key)}"
     end
 
@@ -84,7 +92,7 @@ class Prop
     def sanitized_prop_options(args, defaults)
       options = args.last.is_a?(Hash) ? args.pop : {}
       return {
-        :key => normalize_cache_key(args), :message => defaults[:message],
+        :key => normalize_cache_key(args), :message => defaults[:message], :progressive => defaults[:progressive],
         :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i
       }.merge(options)
     end

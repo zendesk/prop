@@ -111,6 +111,35 @@ class TestProp < Test::Unit::TestCase
         end
       end
 
+      should "not reset counter when violations happen during the time window for a progressive cache" do
+        start = Time.parse("2006-05-04 03:02:01")
+        Time.stubs(:now).returns(start)
+
+        Prop.setup :not_progressive, :threshold => 5, :interval => 10
+
+        assert_raises(Prop::RateLimitExceededError) do
+          6.times { Prop.throttle_not_progressive! }
+        end
+
+        Time.stubs(:now).returns(start + 5)
+        assert_raises(Prop::RateLimitExceededError) { Prop.throttle_not_progressive! }
+        Time.stubs(:now).returns(start + 15)
+        assert Prop.throttle_not_progressive!
+
+        Time.stubs(:now).returns(start)
+        Prop.setup :progressive, :threshold => 5, :interval => 10, :progressive => true
+
+        assert_raises(Prop::RateLimitExceededError) do
+          6.times { Prop.throttle_progressive! }
+        end
+
+        Time.stubs(:now).returns(start + 5)
+        assert_raises(Prop::RateLimitExceededError) { Prop.throttle_progressive! }
+
+        Time.stubs(:now).returns(start + 11)
+        assert_raises(Prop::RateLimitExceededError) { Prop.throttle_progressive! }
+      end
+
       should "not increment the counter beyon the threshold" do
         10.times do |i|
           Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10) rescue nil
