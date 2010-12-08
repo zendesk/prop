@@ -140,12 +140,23 @@ class TestProp < Test::Unit::TestCase
         assert_raises(Prop::RateLimitExceededError) { Prop.throttle_progressive! }
       end
 
-      should "not increment the counter beyon the threshold" do
+      should "not increment the counter beyond the threshold" do
         10.times do |i|
           Prop.throttle!(:key => 'hello', :threshold => 5, :interval => 10) rescue nil
         end
 
         assert_equal 5, Prop.count(:key => 'hello', :threshold => 5, :interval => 10)
+      end
+
+      should "support custom increments" do
+        Prop.throttle!(:key => 'hello', :threshold => 100, :interval => 10)
+        Prop.throttle!(:key => 'hello', :threshold => 100, :interval => 10)
+
+        assert_equal 2, Prop.count(:key => 'hello', :threshold => 100, :interval => 10)
+
+        Prop.throttle!(:key => 'hello', :threshold => 100, :interval => 10, :increment => 48)
+
+        assert_equal 50, Prop.count(:key => 'hello', :threshold => 100, :interval => 10)
       end
 
       should "raise Prop::RateLimitExceededError when the threshold is exceeded" do

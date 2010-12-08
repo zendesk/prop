@@ -65,7 +65,7 @@ class Prop
         end
         raise Prop::RateLimitExceededError.create(options[:key], options[:threshold], options[:message])
       else
-        writer.call(sanitized_prop_key(options), counter + 1)
+        writer.call(sanitized_prop_key(options), counter + [ 1, options[:increment].to_i ].max)
       end
     end
 
@@ -93,7 +93,7 @@ class Prop
       options = args.last.is_a?(Hash) ? args.pop : {}
       return {
         :key => normalize_cache_key(args), :message => defaults[:message], :progressive => defaults[:progressive],
-        :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i
+        :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i, :increment => defaults[:increment]
       }.merge(options)
     end
 

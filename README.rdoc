@@ -54,6 +54,15 @@ If you wish to reset a specific throttle, you can do that like so:
 
 When the threshold are invoked without argument, the key is nil and as such a scope of its own.
 
+The default (and smallest possible) increment is 1, you can of course set that to any integer value using :increment
+
+  Prop.setup(:execution_time_ms, :threshold => 1000, :interval => 1.minute)
+  Prop.throttle_execution_time_ms!(:increment => (Benchmark.realtime { execute } * 1000).to_i)
+
+You can gauge the current value of a throttle using count:
+
+  Prop.count_mails_per_hour!(mail.from)
+
 Lastly you can use Prop without registering the thresholds up front:
 
   Prop.throttle!(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
