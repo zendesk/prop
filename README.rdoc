@@ -17,60 +17,59 @@ You can choose to rely on a database or Moneta or Redis or whatever you'd like t
 
 Once the read and write operations are defined, you can optionally define some preconfigured default thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
 
-  Prop.setup(:mails_per_hour, :threshold => 100, :interval => 1.hour)
+  Prop.defaults(:mails_per_hour, :threshold => 100, :interval => 1.hour)
 
-This results in a the following methods being generated:
+You can now put the throttle to work with this values, by passing the "handle" to the respective methods in Prop:
 
   # Throws Prop::RateLimitExceededError if the threshold/interval has been reached
-  Prop.throttle_mails_per_hour!
+  Prop.throttle!(:mails_per_hour)
 
   # Returns true if the threshold/interval has been reached
-  Prop.throttle_mails_per_hour?
+  Prop.throttled?(:mails_per_hour)
 
-  # Sets the counter to 0
-  Prop.reset_mails_per_hour
+  # Sets the throttle "count" to 0
+  Prop.reset(:mails_per_hour)
+
+  # Returns the value of this throttle, usually a count, but see below for more
+  Prop.query(:mails_per_hour)
 
 In many cases you will want to tie a specific key to a defined throttle, for example you can scope the throttling to a specific sender rather than running a global "mails per hour" throttle:
 
-  Prop.throttle_mails_per_hour!(mail.from)
+  Prop.throttle!(:mails_per_hour, mail.from)
+  Prop.throttled?(:mails_per_hour, mail.from)
+  Prop.reset(:mails_per_hour, mail.from)
+  Prop.query(:mails_per_hour, mail.from)
 
-If this method gets called more than "threshold" times within "interval in seconds" Prop throws a Prop::RateLimitExceededError. You can change the message of this error, which is handy when you are using Prop in multiple locations and want to be able to differentiate further up the stack. For example:
+The throttle scope can also be an array of values, e.g.:
 
-  Prop.setup(:logins, :threshold => 5, :interval => 5.minutes, :message => "Too many invalid login attempts.")
+  Prop.throttle!(:mails_per_hour, [ account.id, mail.from ])
 
-In Rails you can use this in e.g. ApplicationController:
+If the throttle! method gets called more than "threshold" times within "interval in seconds" for a given handle and key combination, Prop throws a Prop::RateLimitExceededError. This exception contains a "handle" reference, which is handy when you are using Prop in multiple locations and want to be able to differentiate further up the stack. For example, in Rails you can use this in e.g. ApplicationController:
+
+  THROTTLE_MESSAGES = Hash.new("Throttle exceeded")
+  THROTTLE_MESSAGES[:login] = "Too many invalid login attempts. Try again later."
 
   rescue_from Prop::RateLimitExceededError do |exception|
-    render :status => 403, :message => exception.message
+    render :status => 403, :message => THROTTLE_MESSAGES[exception.handle]
   end
 
 You can chose to override the threshold for a given key:
 
-  Prop.throttle_mails_per_hour!(mail.from, :threshold => account.mail_throttle_threshold)
+  Prop.throttle!(:mails_per_hour, mail.from, :threshold => account.mail_throttle_threshold)
 
-If you wish to reset a specific throttle, you can do that like so:
+When the threshold are invoked without argument, the key is nil and as such a scope of its own, i.e. these are equivalent:
 
-  Prop.reset_mails_per_hour(mail.from)
+  Prop.throttle!(:mails_per_hour)
+  Prop.throttle!(:mails_per_hour, nil)
 
-When the threshold are invoked without argument, the key is nil and as such a scope of its own.
+The default (and smallest possible) increment is 1, you can set that to any integer value using :increment which is handy for building time based throttles:
 
-The default (and smallest possible) increment is 1, you can of course set that to any integer value using :increment
+  Prop.setup(:execute_time, :threshold => 10, :interval => 1.minute)
+  Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { execute }).to_i)
 
-  Prop.setup(:execution_time_ms, :threshold => 1000, :interval => 1.minute)
-  Prop.throttle_execution_time_ms!(:increment => (Benchmark.realtime { execute } * 1000).to_i)
+== How it works
 
-You can gauge the current value of a throttle using count:
-
-  Prop.count_mails_per_hour!(mail.from)
-
-Lastly you can use Prop without registering the thresholds up front:
-
-  Prop.throttle!(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
-  Prop.throttle?(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
-  Prop.reset(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
-  Prop.count(:key => 'nuisance@example.com', :threshold => 100, :interval -> 1.hour)
-
-It's up to you to pass an appropriate key which reflects the scope you're rate limiting. The interval is tied to the underlying key generating mechanism, so if you change that between calls and have all other things equal, then that will result in different throttles being set.
+Prop uses the interval to define a window of time using simple div arithmetic. This means that it's a worst case throttle that will allow up to 2 times the specified requests within the specified interval.
 
 == Note on Patches/Pull Requests
  

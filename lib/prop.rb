@@ -8,14 +8,12 @@ end
 
 class Prop
   class RateLimitExceededError < RuntimeError
-    attr_accessor :root_message, :retry_after
+    attr_accessor :handle, :retry_after
 
-    def self.create(key, threshold, message)
-      default = "#{key} threshold #{threshold} exceeded"
-      error   = new(message || default)
-      error.retry_after  = threshold - Time.now.to_i % threshold if threshold > 0
-      error.root_message = default
-
+    def self.create(handle, key, threshold)
+      error = new("#{handle} threshold of #{threshold} exceeded for key '#{key}'")
+      error.handle      = handle
+      error.retry_after = threshold - Time.now.to_i % threshold if threshold > 0
       raise error
     end
   end
@@ -31,69 +29,64 @@ class Prop
       self.writer = blk
     end
 
-    def setup(handle, defaults)
+    def defaults(handle, defaults)
       raise RuntimeError.new("Invalid threshold setting") unless defaults[:threshold].to_i > 0
-      raise RuntimeError.new("Invalid interval setting") unless defaults[:interval].to_i > 0
+      raise RuntimeError.new("Invalid interval setting")  unless defaults[:interval].to_i > 0
 
-      define_prop_class_method "throttle_#{handle}!" do |*args|
-        throttle!(sanitized_prop_options([ handle ] + args, defaults))
-      end
-
-      define_prop_class_method "throttle_#{handle}?" do |*args|
-        throttle?(sanitized_prop_options([ handle ] + args, defaults))
-      end
-
-      define_prop_class_method "reset_#{handle}" do |*args|
-        reset(sanitized_prop_options([ handle ] + args, defaults))
-      end
-
-      define_prop_class_method "count_#{handle}" do |*args|
-        count(sanitized_prop_options([ handle ] + args, defaults))
-      end
+      self.handles ||= {}
+      self.handles[handle] = defaults
     end
 
-    def throttle?(options)
-      count(options) >= options[:threshold]
-    end
-
-    def throttle!(options)
-      counter = count(options)
+    def throttle!(handle, key = nil, options = {})
+      options   = sanitized_prop_options(handle, key, options)
+      cache_key = sanitized_prop_key(key, options[:interval])
+      counter   = reader.call(cache_key).to_i
 
       if counter >= options[:threshold]
-        if options[:progressive]
-          writer.call(sanitized_prop_key(options.merge(:window_modifier => 1)), counter) 
-        end
-        raise Prop::RateLimitExceededError.create(options[:key], options[:threshold], options[:message])
+        raise Prop::RateLimitExceededError.create(handle, normalize_cache_key(key), options[:threshold])
       else
-        writer.call(sanitized_prop_key(options), counter + [ 1, options[:increment].to_i ].max)
+        writer.call(cache_key, counter + [ 1, options[:increment].to_i ].max)
       end
     end
 
-    def reset(options)
-      cache_key = sanitized_prop_key(options)
+    def throttled?(handle, key = nil, options = {})
+      options   = sanitized_prop_options(handle, key, options)
+      cache_key = sanitized_prop_key(key, options[:interval])
+
+      reader.call(cache_key).to_i >= options[:threshold]
+    end
+
+    def reset(handle, key = nil, options = {})
+      options   = sanitized_prop_options(handle, key, options)
+      cache_key = sanitized_prop_key(key, options[:interval])
+
       writer.call(cache_key, 0)
     end
 
-    def count(options)
-      cache_key = sanitized_prop_key(options)
+    def query(handle, key = nil, options = {})
+      options   = sanitized_prop_options(handle, key, options)
+      cache_key = sanitized_prop_key(key, options[:interval])
+
       reader.call(cache_key).to_i
     end
 
     private
 
     # Builds the expiring cache key
-    def sanitized_prop_key(options)
-      window    = (Time.now.to_i / options[:interval]) + options[:window_modifier].to_i
-      cache_key = "#{normalize_cache_key(options[:key])}/#{ window }"
+    def sanitized_prop_key(key, interval)
+      window    = (Time.now.to_i / interval)
+      cache_key = "#{normalize_cache_key(key)}/#{ window }"
       "prop/#{Digest::MD5.hexdigest(cache_key)}"
     end
 
     # Sanitizes the option set and sets defaults
-    def sanitized_prop_options(args, defaults)
-      options = args.last.is_a?(Hash) ? args.pop : {}
+    def sanitized_prop_options(handle, key, options)
+      defaults = (handles || {})[handle] || {}
       return {
-        :key => normalize_cache_key(args), :message => defaults[:message], :progressive => defaults[:progressive],
-        :threshold => defaults[:threshold].to_i, :interval => defaults[:interval].to_i, :increment => defaults[:increment]
+        :key       => normalize_cache_key(key),
+        :increment => defaults[:increment],
+        :threshold => defaults[:threshold].to_i,
+        :interval  => defaults[:interval].to_i
       }.merge(options)
     end
 
