@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{prop}
-  s.version = "0.4.1"
+  s.version = "0.5.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Morten Primdahl"]
-  s.date = %q{2010-12-14}
+  s.date = %q{2011-02-03}
   s.description = %q{A gem for implementing rate limiting}
   s.email = %q{morten@zendesk.com}
   s.extra_rdoc_files = [
@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".document",
+    ".gemtest",
     "LICENSE",
     "README.rdoc",
     "Rakefile",
