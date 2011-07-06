@@ -72,7 +72,7 @@ The default (and smallest possible) increment is 1, you can set that to any inte
 Prop uses the interval to define a window of time using simple div arithmetic. This means that it's a worst case throttle that will allow up to 2 times the specified requests within the specified interval.
 
 == Note on Patches/Pull Requests
- 
+
 * Fork the project.
 * Make your feature addition or bug fix.
 * Add tests for it. This is important so I don't break it in a
@@ -81,6 +81,3 @@ Prop uses the interval to define a window of time using simple div arithmetic. T
   (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
 
-== Copyright
-
-Copyright (c) 2010 Morten Primdahl. See LICENSE for details.
