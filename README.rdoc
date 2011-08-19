@@ -15,9 +15,9 @@ To get going with Prop you first define the read and write operations. These def
 
 You can choose to rely on a database or Moneta or Redis or whatever you'd like to use for transient storage. Prop does not do any sort of clean up of its key space, so you would have to implement that manually should you be using anything but an LRU cache.
 
-Once the read and write operations are defined, you can optionally define some preconfigured default thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
+Once the read and write operations are defined, you can optionally define thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
 
-  Prop.defaults(:mails_per_hour, :threshold => 100, :interval => 1.hour)
+  Prop.configure(:mails_per_hour, :threshold => 100, :interval => 1.hour)
 
 You can now put the throttle to work with this values, by passing the "handle" to the respective methods in Prop:
 
@@ -50,7 +50,7 @@ If the throttle! method gets called more than "threshold" times within "interval
   THROTTLE_MESSAGES[:login] = "Too many invalid login attempts. Try again later."
 
   rescue_from Prop::RateLimitExceededError do |exception|
-    render :status => 403, :message => THROTTLE_MESSAGES[exception.handle]
+    render :status => 403, :message => I18n.t(THROTTLE_MESSAGES[exception.handle])
   end
 
 You can chose to override the threshold for a given key:

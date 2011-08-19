@@ -15,16 +15,16 @@ class TestProp < Test::Unit::TestCase
     context "#defaults" do
       should "raise errors on invalid configuation" do
         assert_raises(RuntimeError) do
-          Prop.defaults :hello_there, :threshold => 20, :interval => 'hello'
+          Prop.configure :hello_there, :threshold => 20, :interval => 'hello'
         end
 
         assert_raises(RuntimeError) do
-          Prop.defaults :hello_there, :threshold => 'wibble', :interval => 100
+          Prop.configure :hello_there, :threshold => 'wibble', :interval => 100
         end
       end
 
       should "result in a default handle" do
-        Prop.defaults :hello_there, :threshold => 4, :interval => 10
+        Prop.configure :hello_there, :threshold => 4, :interval => 10
         4.times do |i|
           assert_equal (i + 1), Prop.throttle!(:hello_there, 'some key')
         end
@@ -34,7 +34,7 @@ class TestProp < Test::Unit::TestCase
       end
 
       should "create a handle accepts various cache key types" do
-        Prop.defaults :hello_there, :threshold => 4, :interval => 10
+        Prop.configure :hello_there, :threshold => 4, :interval => 10
         assert_equal 1, Prop.throttle!(:hello_there, 5)
         assert_equal 2, Prop.throttle!(:hello_there, 5)
         assert_equal 1, Prop.throttle!(:hello_there, '6')
@@ -46,7 +46,7 @@ class TestProp < Test::Unit::TestCase
 
     context "#reset" do
       setup do
-        Prop.defaults :hello, :threshold => 10, :interval => 10
+        Prop.configure :hello, :threshold => 10, :interval => 10
 
         5.times do |i|
           assert_equal (i + 1), Prop.throttle!(:hello)
@@ -68,7 +68,7 @@ class TestProp < Test::Unit::TestCase
 
     context "#throttled?" do
       should "return true once the threshold has been reached" do
-        Prop.defaults(:hello, :threshold => 2, :interval => 10)
+        Prop.configure(:hello, :threshold => 2, :interval => 10)
         Prop.throttle!(:hello)
         assert !Prop.throttled?(:hello)
         Prop.throttle!(:hello)
@@ -96,7 +96,7 @@ class TestProp < Test::Unit::TestCase
       end
 
       should "not increment the counter beyond the threshold" do
-        Prop.defaults(:hello, :threshold => 5, :interval => 1)
+        Prop.configure(:hello, :threshold => 5, :interval => 1)
         10.times do |i|
           Prop.throttle!(:hello) rescue nil
         end
@@ -105,7 +105,7 @@ class TestProp < Test::Unit::TestCase
       end
 
       should "support custom increments" do
-        Prop.defaults(:hello, :threshold => 100, :interval => 10)
+        Prop.configure(:hello, :threshold => 100, :interval => 10)
 
         Prop.throttle!(:hello)
         Prop.throttle!(:hello)

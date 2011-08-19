@@ -29,7 +29,7 @@ class Prop
       self.writer = blk
     end
 
-    def defaults(handle, defaults)
+    def configure(handle, defaults)
       raise RuntimeError.new("Invalid threshold setting") unless defaults[:threshold].to_i > 0
       raise RuntimeError.new("Invalid interval setting")  unless defaults[:interval].to_i > 0
 
