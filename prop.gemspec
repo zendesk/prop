@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{prop}
-  s.version = "0.5.3"
+  s.version = "0.6.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Morten Primdahl"]
-  s.date = %q{2011-07-06}
+  s.date = %q{2011-08-18}
   s.description = %q{A gem for implementing rate limiting}
   s.email = %q{morten@zendesk.com}
   s.extra_rdoc_files = [
@@ -32,10 +32,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.6.2}
   s.summary = %q{Puts a cork in their requests}
-  s.test_files = [
-    "test/helper.rb",
-    "test/test_prop.rb"
-  ]
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
