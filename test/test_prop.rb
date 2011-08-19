@@ -44,6 +44,24 @@ class TestProp < Test::Unit::TestCase
       end
     end
 
+    context "#disable" do
+      setup do
+        Prop.configure :hello, :threshold => 10, :interval => 10
+      end
+
+      should "not increase the throttle" do
+        assert_equal 1, Prop.throttle!(:hello)
+        assert_equal 2, Prop.throttle!(:hello)
+        Prop.disabled do
+          assert_equal 2, Prop.throttle!(:hello)
+          assert_equal 2, Prop.throttle!(:hello)
+          assert Prop.disabled?
+        end
+        assert !Prop.disabled?
+        assert_equal 3, Prop.throttle!(:hello)
+      end
+    end
+
     context "#reset" do
       setup do
         Prop.configure :hello, :threshold => 10, :interval => 10

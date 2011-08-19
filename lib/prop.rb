@@ -37,10 +37,23 @@ class Prop
       self.handles[handle] = defaults
     end
 
+    def disabled(&block)
+      @disabled = true
+      yield
+    ensure
+      @disabled = false
+    end
+
+    def disabled?
+      !!@disabled
+    end
+
     def throttle!(handle, key = nil, options = {})
       options   = sanitized_prop_options(handle, key, options)
       cache_key = sanitized_prop_key(key, options[:interval])
       counter   = reader.call(cache_key).to_i
+
+      return counter if disabled?
 
       if counter >= options[:threshold]
         raise Prop::RateLimitExceededError.create(handle, normalize_cache_key(key), options[:threshold])
