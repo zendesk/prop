@@ -94,6 +94,22 @@ class TestProp < Test::Unit::TestCase
       end
     end
 
+    context "#query" do
+      setup do
+        Prop.configure(:hello, :threshold => 20, :interval => 20)
+        Prop.throttle!(:hello)
+        Prop.throttle!(:hello)
+      end
+
+      should "be aliased by #count" do
+        assert_equal Prop.count(:hello), 2
+      end
+
+      should "return the number of hits on a throttle" do
+        assert_equal Prop.query(:hello), 2
+      end
+    end
+
     context "#throttle!" do
       should "increment counter correctly" do
         3.times do |i|

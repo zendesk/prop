@@ -84,6 +84,7 @@ class Prop
 
       reader.call(cache_key).to_i
     end
+    alias :count :query
 
     private
 
