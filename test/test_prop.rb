@@ -144,12 +144,19 @@ class TestProp < Test::Unit::TestCase
         end
 
         begin
-          Prop.throttle!(:hello, nil, :threshold => 5, :interval => 10)
+          Prop.throttle!(:hello, nil, :threshold => 5, :interval => 10, :description => "Boom!")
           fail
         rescue Prop::RateLimitExceededError => e
           assert_equal :hello, e.handle
           assert_equal "hello threshold of 5 exceeded for key ''", e.message
+          assert_equal "Boom!", e.description
           assert e.retry_after
+        end
+      end
+
+      should "raise a RuntimeError when a handle has not been configured" do
+        assert_raises(RuntimeError) do
+          Prop.throttle!(:no_such_handle, nil, :threshold => 5, :interval => 10)
         end
       end
     end

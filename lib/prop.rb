@@ -8,12 +8,14 @@ end
 
 class Prop
   class RateLimitExceededError < RuntimeError
-    attr_accessor :handle, :retry_after
+    attr_accessor :handle, :retry_after, :description
 
-    def self.create(handle, key, threshold)
+    def self.create(handle, key, threshold, description = nil)
       error = new("#{handle} threshold of #{threshold} exceeded for key '#{key}'")
+      error.description = description
       error.handle      = handle
       error.retry_after = threshold - Time.now.to_i % threshold if threshold > 0
+
       raise error
     end
   end
@@ -56,7 +58,7 @@ class Prop
       return counter if disabled?
 
       if counter >= options[:threshold]
-        raise Prop::RateLimitExceededError.create(handle, normalize_cache_key(key), options[:threshold])
+        raise Prop::RateLimitExceededError.create(handle, normalize_cache_key(key), options[:threshold], options[:description])
       else
         writer.call(cache_key, counter + [ 1, options[:increment].to_i ].max)
       end
@@ -94,7 +96,9 @@ class Prop
 
     # Sanitizes the option set and sets defaults
     def sanitized_prop_options(handle, key, options)
-      defaults = (handles || {})[handle] || {}
+      raise RuntimeError.new("No such handle configured: #{handle.inspect}") if handles.nil? || handles[handle].nil?
+
+      defaults = handles[handle]
       return {
         :key       => normalize_cache_key(key),
         :increment => defaults[:increment],

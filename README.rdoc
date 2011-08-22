@@ -15,9 +15,11 @@ To get going with Prop you first define the read and write operations. These def
 
 You can choose to rely on a database or Moneta or Redis or whatever you'd like to use for transient storage. Prop does not do any sort of clean up of its key space, so you would have to implement that manually should you be using anything but an LRU cache.
 
+== Defining thresholds
+
 Once the read and write operations are defined, you can optionally define thresholds. If for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
 
-  Prop.configure(:mails_per_hour, :threshold => 100, :interval => 1.hour)
+  Prop.configure(:mails_per_hour, :threshold => 100, :interval => 1.hour, :description => "Mail rate limit exceeded")
 
 You can now put the throttle to work with this values, by passing the "handle" to the respective methods in Prop:
 
@@ -33,6 +35,10 @@ You can now put the throttle to work with this values, by passing the "handle" t
   # Returns the value of this throttle, usually a count, but see below for more
   Prop.query(:mails_per_hour)
 
+Prop will raise a RuntimeError if you attempt to operate on an undefined handle.
+
+== Scoping a throttle
+
 In many cases you will want to tie a specific key to a defined throttle, for example you can scope the throttling to a specific sender rather than running a global "mails per hour" throttle:
 
   Prop.throttle!(:mails_per_hour, mail.from)
@@ -44,18 +50,31 @@ The throttle scope can also be an array of values, e.g.:
 
   Prop.throttle!(:mails_per_hour, [ account.id, mail.from ])
 
-If the throttle! method gets called more than "threshold" times within "interval in seconds" for a given handle and key combination, Prop throws a Prop::RateLimitExceededError. This exception contains a "handle" reference, which is handy when you are using Prop in multiple locations and want to be able to differentiate further up the stack. For example, in Rails you can use this in e.g. ApplicationController:
+== Error handling
 
-  THROTTLE_MESSAGES = Hash.new("Throttle exceeded")
-  THROTTLE_MESSAGES[:login] = "Too many invalid login attempts. Try again later."
+If the throttle! method gets called more than "threshold" times within "interval in seconds" for a given handle and key combination, Prop throws a Prop::RateLimitExceededError. This exception contains a "handle" reference and a "description" if specified during the configuration. The handle allows you to rescue Prop::RateLimitExceededError and differentiate action depending on the handle. For example, in Rails you can use this in e.g. ApplicationController:
 
-  rescue_from Prop::RateLimitExceededError do |exception|
-    render :status => 403, :message => I18n.t(THROTTLE_MESSAGES[exception.handle])
+  rescue_from Prop::RateLimitExceededError do |e|
+    if e.handle == :authorization_attempt
+      render :status => :forbidden, :message => I18n.t(e.description)
+    elsif ...
+
+    end
   end
+
+== Disabling Prop
+
+In case you need to perform e.g. a manual bulk operation:
+
+  Prop.disabled do
+    # No throttles will be tested here
+  end
+
+== Threshold settings
 
 You can chose to override the threshold for a given key:
 
-  Prop.throttle!(:mails_per_hour, mail.from, :threshold => account.mail_throttle_threshold)
+  Prop.throttle!(:mails_per_hour, mail.from, :threshold => current_account.mail_throttle_threshold)
 
 When the threshold are invoked without argument, the key is nil and as such a scope of its own, i.e. these are equivalent:
 
