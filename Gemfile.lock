@@ -1,0 +1,20 @@
+PATH
+  remote: .
+  specs:
+    prop (0.6.3)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    metaclass (0.0.1)
+    mocha (0.10.0)
+      metaclass (~> 0.0.1)
+    shoulda (2.11.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mocha (>= 0.9.8)
+  prop!
+  shoulda
