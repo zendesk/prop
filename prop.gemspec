@@ -13,8 +13,8 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'prop'
-  s.version           = '0.6.4'
-  s.date              = '2011-11-30'
+  s.version           = '0.6.5'
+  s.date              = '2011-12-13'
   s.rubyforge_project = 'prop'
 
   ## Make sure your summary is short. The description may be as long
@@ -43,7 +43,7 @@ Gem::Specification.new do |s|
   ## Specify any RDoc options here. You'll want to add your README and
   ## LICENSE files to the extra_rdoc_files list.
   s.rdoc_options = ["--charset=UTF-8"]
-  s.extra_rdoc_files = %w[README.rdoc LICENSE]
+  s.extra_rdoc_files = %w[README.md LICENSE]
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
@@ -61,8 +61,9 @@ Gem::Specification.new do |s|
   ## THE MANIFEST COMMENTS, they are used as delimiters by the task.
   # = MANIFEST =
   s.files = %w[
+    Gemfile
     LICENSE
-    README.rdoc
+    README.md
     Rakefile
     lib/prop.rb
     prop.gemspec
