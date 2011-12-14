@@ -152,15 +152,17 @@ class TestProp < Test::Unit::TestCase
       end
 
       should "raise Prop::RateLimitExceededError when the threshold is exceeded" do
+        Prop.configure(:hello, :threshold => 5, :interval => 10, :description => "Boom!")
+
         5.times do |i|
-          Prop.throttle!(:hello, nil, :threshold => 5, :interval => 10)
+          Prop.throttle!(:hello, nil)
         end
         assert_raises(Prop::RateLimitExceededError) do
-          Prop.throttle!(:hello, nil, :threshold => 5, :interval => 10)
+          Prop.throttle!(:hello, nil)
         end
 
         begin
-          Prop.throttle!(:hello, nil, :threshold => 5, :interval => 10, :description => "Boom!")
+          Prop.throttle!(:hello, nil)
           fail
         rescue Prop::RateLimitExceededError => e
           assert_equal :hello, e.handle

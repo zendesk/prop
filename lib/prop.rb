@@ -7,7 +7,7 @@ class Object
 end
 
 class Prop
-  VERSION = "0.6.4"
+  VERSION = "0.6.5"
 
   class RateLimitExceededError < RuntimeError
     attr_accessor :handle, :retry_after, :description
@@ -103,10 +103,11 @@ class Prop
 
       defaults = handles[handle]
       return {
-        :key       => normalize_cache_key(key),
-        :increment => defaults[:increment],
-        :threshold => defaults[:threshold].to_i,
-        :interval  => defaults[:interval].to_i
+        :key         => normalize_cache_key(key),
+        :increment   => defaults[:increment],
+        :description => defaults[:description],
+        :threshold   => defaults[:threshold].to_i,
+        :interval    => defaults[:interval].to_i
       }.merge(options)
     end
 
