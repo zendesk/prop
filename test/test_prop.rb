@@ -179,5 +179,19 @@ class TestProp < Test::Unit::TestCase
       end
     end
 
+    context 'different handles with the same interval' do
+      setup do
+        Prop.configure(:api_requests, :threshold => 100, :interval => 30)
+        Prop.configure(:login_attempts, :threshold => 10, :interval => 30)
+      end
+
+      should 'be counted separately' do
+        user_id = 42
+        Prop.throttle!(:api_requests, user_id)
+        assert_equal(1, Prop.count(:api_requests, user_id))
+        assert_equal(0, Prop.count(:login_attempts, user_id))
+      end
+    end
+
   end
 end
