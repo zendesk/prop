@@ -54,7 +54,7 @@ class Prop
 
     def throttle!(handle, key = nil, options = {})
       options   = sanitized_prop_options(handle, key, options)
-      cache_key = sanitized_prop_key(key, options[:interval])
+      cache_key = sanitized_prop_key(handle, key, options)
       counter   = reader.call(cache_key).to_i
 
       return counter if disabled?
@@ -68,21 +68,21 @@ class Prop
 
     def throttled?(handle, key = nil, options = {})
       options   = sanitized_prop_options(handle, key, options)
-      cache_key = sanitized_prop_key(key, options[:interval])
+      cache_key = sanitized_prop_key(handle, key, options)
 
       reader.call(cache_key).to_i >= options[:threshold]
     end
 
     def reset(handle, key = nil, options = {})
       options   = sanitized_prop_options(handle, key, options)
-      cache_key = sanitized_prop_key(key, options[:interval])
+      cache_key = sanitized_prop_key(handle, key, options)
 
       writer.call(cache_key, 0)
     end
 
     def query(handle, key = nil, options = {})
       options   = sanitized_prop_options(handle, key, options)
-      cache_key = sanitized_prop_key(key, options[:interval])
+      cache_key = sanitized_prop_key(handle, key, options)
 
       reader.call(cache_key).to_i
     end
@@ -91,9 +91,9 @@ class Prop
     private
 
     # Builds the expiring cache key
-    def sanitized_prop_key(key, interval)
-      window    = (Time.now.to_i / interval)
-      cache_key = "#{normalize_cache_key(key)}/#{ window }"
+    def sanitized_prop_key(handle, key, options)
+      window    = (Time.now.to_i / options[:interval])
+      cache_key = normalize_cache_key([handle, key, window])
       "prop/#{Digest::MD5.hexdigest(cache_key)}"
     end
 
