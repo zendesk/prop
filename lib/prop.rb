@@ -7,7 +7,7 @@ class Object
 end
 
 class Prop
-  VERSION = "0.6.5"
+  VERSION = "0.6.6"
 
   class RateLimitExceededError < RuntimeError
     attr_accessor :handle, :retry_after, :description
