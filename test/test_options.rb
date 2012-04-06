@@ -35,7 +35,11 @@ class TestOptions < Test::Unit::TestCase
 
         should "raise when not given a key" do
           @args.delete(:key)
-          assert_raises(IndexError) { Prop::Options.build(@args) }
+          begin
+            Prop::Options.build(@args)
+            fail "Should puke when not given a valid key"
+          rescue
+          end
         end
       end
     end

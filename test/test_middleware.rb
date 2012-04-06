@@ -35,11 +35,7 @@ class TestMiddleware < Test::Unit::TestCase
 
       context "with a custom error handler" do
         setup do
-          Prop::Middleware.error_handler = Proc.new { |error| "Oops" }
-        end
-
-        teardown do
-          Prop::Middleware.error_handler = Prop::Middleware::DefaultErrorHandler
+          @middleware = Prop::Middleware.new(@app, :error_handler => Proc.new { |error| "Oops" })
         end
 
         should "allow setting a custom error handler" do

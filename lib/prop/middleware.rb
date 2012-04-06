@@ -14,21 +14,17 @@ module Prop
       end
     end
 
-    class << self
-      attr_accessor :error_handler
+    def initialize(app, options = {})
+      @app     = app
+      @options = options
+      @handler = options[:error_handler] || DefaultErrorHandler
     end
 
-    self.error_handler = DefaultErrorHandler
-
-    def initialize(app)
-      @app = app
-    end
-
-    def call(env, options = {})
+    def call(env)
       begin
         @app.call(env)
       rescue Prop::RateLimited => e
-        Middleware.error_handler.call(e)
+        @handler.call(e)
       end
     end
   end

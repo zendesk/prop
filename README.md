@@ -60,7 +60,7 @@ If the throttle! method gets called more than "threshold" times within "interval
       if e.handle == :authorization_attempt
         render :status => :forbidden, :message => I18n.t(e.description)
       elsif ...
-    
+
       end
     end
 
@@ -76,12 +76,14 @@ Where `Retry-After` is the number of seconds the client has to wait before retry
 
 If you wish to do manual error messaging in these cases, you can define an error handler in your Prop configuration. Here's how the default error handler looks, feel free to replace it with your own - you can set the error handler to anything that responds to `.call` and takes a `RateLimited` instance as argument:
 
-    Prop::Middleware.error_handler = Proc.new do |error|
+    error_handler = Proc.new do |error|
       body    = error.description || "This action has been rate limited"
       headers = { "Content-Type" => "text/plain", "Content-Length" => body.size, "Retry-After" => error.retry_after }
 
       [ 429, headers, [ body ]]
     end
+
+    ActionController::Dispatcher.middleware.insert_before(ActionController::ParamsParser, :error_handler => error_handler)
 
 ## Disabling Prop
 
