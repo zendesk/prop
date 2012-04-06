@@ -24,8 +24,14 @@ module Prop
       begin
         @app.call(env)
       rescue Prop::RateLimited => e
-        @handler.call(env, e)
+        render_response(env, e)
       end
+    end
+
+    protected
+
+    def render_response(env, error)
+      @handler.call(env, e)
     end
   end
 
