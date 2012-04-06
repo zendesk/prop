@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'prop'
-  s.version           = '0.7.2'
+  s.version           = '0.7.3'
   s.date              = '2012-04-06'
   s.rubyforge_project = 'prop'
 
@@ -74,6 +74,7 @@ Gem::Specification.new do |s|
     prop.gemspec
     test/helper.rb
     test/test_key.rb
+    test/test_limiter.rb
     test/test_middleware.rb
     test/test_options.rb
     test/test_prop.rb
