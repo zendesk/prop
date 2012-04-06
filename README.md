@@ -56,7 +56,7 @@ The throttle scope can also be an array of values, e.g.:
 
 If the throttle! method gets called more than "threshold" times within "interval in seconds" for a given handle and key combination, Prop throws a Prop::RateLimited error which is a subclass of StandardError. This exception contains a "handle" reference and a "description" if specified during the configuration. The handle allows you to rescue Prop::RateLimited and differentiate action depending on the handle. For example, in Rails you can use this in e.g. ApplicationController:
 
-    rescue_from Prop::RateLimitExceededError do |e|
+    rescue_from Prop::RateLimited do |e|
       if e.handle == :authorization_attempt
         render :status => :forbidden, :message => I18n.t(e.description)
       elsif ...
