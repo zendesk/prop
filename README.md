@@ -28,6 +28,9 @@ The `:mails_per_hour` in the above is called the "handle". You can now put the t
     # Throws Prop::RateLimitExceededError if the threshold/interval has been reached
     Prop.throttle!(:mails_per_hour)
 
+    # Prop can be used to guard a block of code
+    Prop.throttle!(:expensive_request) { calculator.something_very_hard }
+
     # Returns true if the threshold/interval has been reached
     Prop.throttled?(:mails_per_hour)
 
