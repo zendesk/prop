@@ -74,9 +74,9 @@ Prop ships with a built in Rack middleware that you can use to do all the except
 
 Where `Retry-After` is the number of seconds the client has to wait before retrying this end point. The body of this response is whatever description Prop has configured for the throttle that got violated, or a default string if there's none configured.
 
-If you wish to do manual error messaging in these cases, you can define an error handler in your Prop configuration. Here's how the default error handler looks, feel free to replace it with your own - you can set the error handler to anything that responds to `.call` and takes a `RateLimited` instance as argument:
+If you wish to do manual error messaging in these cases, you can define an error handler in your Prop configuration. Here's how the default error handler looks, feel free to replace it with your own - you can set the error handler to anything that responds to `.call` and takes the environment and a `RateLimited` instance as argument:
 
-    error_handler = Proc.new do |error|
+    error_handler = Proc.new do |env, error|
       body    = error.description || "This action has been rate limited"
       headers = { "Content-Type" => "text/plain", "Content-Length" => body.size, "Retry-After" => error.retry_after }
 

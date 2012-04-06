@@ -6,7 +6,7 @@ module Prop
 
     # Default error handler
     class DefaultErrorHandler
-      def self.call(error)
+      def self.call(env, error)
         body    = error.description || "This action has been rate limited"
         headers = { "Content-Type" => "text/plain", "Content-Length" => body.size, "Retry-After" => error.retry_after }
 
@@ -24,7 +24,7 @@ module Prop
       begin
         @app.call(env)
       rescue Prop::RateLimited => e
-        @handler.call(e)
+        @handler.call(env, e)
       end
     end
   end
