@@ -29,7 +29,7 @@ class TestProp < Test::Unit::TestCase
           assert_equal (i + 1), Prop.throttle!(:hello_there, 'some key')
         end
 
-        assert_raises(Prop::RateLimitExceededError) { Prop.throttle!(:hello_there, 'some key') }
+        assert_raises(Prop::RateLimited) { Prop.throttle!(:hello_there, 'some key') }
         assert_equal 5, Prop.throttle!(:hello_there, 'some key', :threshold => 20)
       end
 
@@ -55,9 +55,9 @@ class TestProp < Test::Unit::TestCase
         Prop.disabled do
           assert_equal 2, Prop.throttle!(:hello)
           assert_equal 2, Prop.throttle!(:hello)
-          assert Prop.disabled?
+          assert Prop::Limiter.send(:disabled?)
         end
-        assert !Prop.disabled?
+        assert !Prop::Limiter.send(:disabled?)
         assert_equal 3, Prop.throttle!(:hello)
       end
     end
@@ -94,7 +94,7 @@ class TestProp < Test::Unit::TestCase
       end
     end
 
-    context "#query" do
+    context "#count" do
       setup do
         Prop.configure(:hello, :threshold => 20, :interval => 20)
         Prop.throttle!(:hello)
@@ -151,22 +151,22 @@ class TestProp < Test::Unit::TestCase
         assert_equal 50, Prop.query(:hello)
       end
 
-      should "raise Prop::RateLimitExceededError when the threshold is exceeded" do
+      should "raise Prop::RateLimited when the threshold is exceeded" do
         Prop.configure(:hello, :threshold => 5, :interval => 10, :description => "Boom!")
 
         5.times do |i|
           Prop.throttle!(:hello, nil)
         end
-        assert_raises(Prop::RateLimitExceededError) do
+        assert_raises(Prop::RateLimited) do
           Prop.throttle!(:hello, nil)
         end
 
         begin
           Prop.throttle!(:hello, nil)
           fail
-        rescue Prop::RateLimitExceededError => e
+        rescue Prop::RateLimited => e
           assert_equal :hello, e.handle
-          assert_equal "hello threshold of 5 exceeded for key ''", e.message
+          assert_match "hello threshold of 5/10s exceeded for key", e.message
           assert_equal "Boom!", e.description
           assert e.retry_after
         end
