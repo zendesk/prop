@@ -31,7 +31,7 @@ module Prop
     protected
 
     def render_response(env, error)
-      @handler.call(env, e)
+      @handler.call(env, error)
     end
   end
 
