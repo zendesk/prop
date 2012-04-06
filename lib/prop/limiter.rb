@@ -45,19 +45,26 @@ module Prop
       # handle  - the registered handle associated with the action
       # key     - a custom request specific key, e.g. [ account.id, "download", request.remote_ip ]
       # options - request specific overrides to the defaults configured for this handle
+      # blk     - an optional block of code that this throttle is guarding
       #
       # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
-      def throttle!(handle, key = nil, options = {})
+      # Returns the value of the block if given a such, otherwise the current count of the throttle
+      def throttle!(handle, key = nil, options = {}, &blk)
         options, cache_key = prepare(handle, key, options)
-
         counter = reader.call(cache_key).to_i
 
-        return counter if disabled?
+        unless disabled?
+          if at_threshold?(counter, options[:threshold])
+            raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
+          else
+            counter = writer.call(cache_key, counter + [ 1, options[:increment].to_i ].max)
+          end
+        end
 
-        if counter >= options[:threshold]
-          raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
+        if block_given?
+          yield
         else
-          writer.call(cache_key, counter + [ 1, options[:increment].to_i ].max)
+          counter
         end
       end
 
@@ -96,6 +103,10 @@ module Prop
       alias :query :count
 
       private
+
+      def at_threshold?(mark, threshold)
+        mark >= threshold
+      end
 
       def disabled?
         !!@disabled

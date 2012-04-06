@@ -1,5 +1,6 @@
 require 'helper'
 
+# Integration level tests
 class TestProp < Test::Unit::TestCase
 
   context "Prop" do
