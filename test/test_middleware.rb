@@ -32,6 +32,20 @@ class TestMiddleware < Test::Unit::TestCase
         assert_equal 429, response[0]
         assert_equal ["Boom!"], response[2]
       end
+
+      context "with a custom error handler" do
+        setup do
+          Prop::Middleware.error_handler = Proc.new { |error| "Oops" }
+        end
+
+        teardown do
+          Prop::Middleware.error_handler = Prop::Middleware::DefaultErrorHandler
+        end
+
+        should "allow setting a custom error handler" do
+          assert_equal "Oops", @middleware.call(@env)
+        end
+      end
     end
   end
 end

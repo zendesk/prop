@@ -64,6 +64,25 @@ If the throttle! method gets called more than "threshold" times within "interval
       end
     end
 
+### Using the Middleware
+
+Prop ships with a built in Rack middleware that you can use to do all the exception handling. When a `Prop::RateLimited` error is caught, it will build an HTTP [429 Too Many Requests](http://tools.ietf.org/html/draft-nottingham-http-new-status-02#section-4) response and set the following headers:
+
+    Retry-After: 32
+    Content-Type: text/plain
+    Content-Length: 72
+
+Where `Retry-After` is the number of seconds the client has to wait before retrying this end point. The body of this response is whatever description Prop has configured for the throttle that got violated, or a default string if there's none configured.
+
+If you wish to do manual error messaging in these cases, you can define an error handler in your Prop configuration. Here's how the default error handler looks, feel free to replace it with your own - you can set the error handler to anything that responds to `.call` and takes a `RateLimited` instance as argument:
+
+    Prop::Middleware.error_handler = Proc.new do |error|
+      body    = error.description || "This action has been rate limited"
+      headers = { "Content-Type" => "text/plain", "Content-Length" => body.size, "Retry-After" => error.retry_after }
+
+      [ 429, headers, [ body ]]
+    end
+
 ## Disabling Prop
 
 In case you need to perform e.g. a manual bulk operation:
