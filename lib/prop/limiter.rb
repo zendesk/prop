@@ -57,7 +57,8 @@ module Prop
           if at_threshold?(counter, options[:threshold])
             raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
           else
-            counter = writer.call(cache_key, counter + [ 1, options[:increment].to_i ].max)
+            increment = options.key?(:increment) ? options[:increment].to_i : 1
+            counter   = writer.call(cache_key, counter + increment)
           end
         end
 

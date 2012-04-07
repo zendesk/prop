@@ -51,6 +51,12 @@ class TestLimiter < Test::Unit::TestCase
             should "raise Prop::RateLimited" do
               assert_raises(Prop::RateLimited) { Prop.throttle!(:something) { "wibble" }}
             end
+
+            should "raise even if given :increment => 0" do
+              value = Prop.count(:something)
+              assert_raises(Prop::RateLimited) { Prop.throttle!(:something, nil, :increment => 0) { "wibble" }}
+              assert_equal value, Prop.count(:something)
+            end
           end
 
           context "not given a block" do
@@ -74,6 +80,10 @@ class TestLimiter < Test::Unit::TestCase
           context "not given a block" do
             should "return the updated throttle count" do
               assert_equal Prop.count(:something) + 1, Prop.throttle!(:something)
+            end
+
+            should "not update count if passed an increment of 0" do
+              assert_equal Prop.count(:something), Prop.throttle!(:something, nil, :increment => 0)
             end
           end
         end
