@@ -8,7 +8,7 @@ module Prop
     class DefaultErrorHandler
       def self.call(env, error)
         body    = error.description || "This action has been rate limited"
-        headers = { "Content-Type" => "text/plain", "Content-Length" => body.size, "Retry-After" => error.retry_after }
+        headers = { "Content-Type" => "text/plain", "Content-Length" => "#{body.size}", "Retry-After" => "#{error.retry_after}" }
 
         [ 429, headers, [ body ]]
       end
