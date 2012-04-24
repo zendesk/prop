@@ -18,7 +18,7 @@ class TestRateLimited < Test::Unit::TestCase
         assert_equal "foo", @error.handle
         assert_equal "wibble", @error.cache_key
         assert_equal "Boom!", @error.description
-        assert_equal "foo threshold of 10/60s exceeded for key 'wibble'", @error.message
+        assert_equal "foo threshold of 10 tries per 60s exceeded for key 'nil', hash wibble", @error.message
         assert_equal 20, @error.retry_after
       end
     end

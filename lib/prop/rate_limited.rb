@@ -8,7 +8,7 @@ module Prop
       interval  = options.fetch(:interval).to_i
       threshold = options.fetch(:threshold).to_i
 
-      super("#{handle} threshold of #{threshold}/#{interval}s exceeded for key '#{cache_key}'")
+      super("#{handle} threshold of #{threshold} tries per #{interval}s exceeded for key '#{options[:key].inspect}', hash #{cache_key}")
 
       self.description = options[:description]
       self.handle      = handle

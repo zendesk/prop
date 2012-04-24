@@ -167,7 +167,7 @@ class TestProp < Test::Unit::TestCase
           fail
         rescue Prop::RateLimited => e
           assert_equal :hello, e.handle
-          assert_match "hello threshold of 5/10s exceeded for key", e.message
+          assert_match "5 tries per 10s exceeded for key", e.message
           assert_equal "Boom!", e.description
           assert e.retry_after
         end
