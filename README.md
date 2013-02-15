@@ -114,3 +114,6 @@ The default (and smallest possible) increment is 1, you can set that to any inte
     Prop.setup(:execute_time, :threshold => 10, :interval => 1.minute)
     Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { execute }).to_i)
 
+## License
+
+Released under the Apache License Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
