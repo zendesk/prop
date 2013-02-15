@@ -10,7 +10,7 @@ Gem::Specification.new "prop", "1.0.0" do |s|
 
   s.authors  = ["Morten Primdahl"]
   s.email    = 'primdahl@me.com'
-  s.homepage = 'http://github.com/morten/prop'
+  s.homepage = 'http://github.com/zendesk/prop'
 
   ## This gets added to the $LOAD_PATH so that 'lib/NAME.rb' can be required as
   ## require 'NAME.rb' or'/lib/NAME/file.rb' can be as require 'NAME/file.rb'

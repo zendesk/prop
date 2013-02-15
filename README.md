@@ -1,5 +1,5 @@
 
-# Prop [![Build Status](https://secure.travis-ci.org/morten/prop.png)](http://travis-ci.org/morten/prop)
+# Prop [![Build Status](https://secure.travis-ci.org/zendesk/prop.png)](http://travis-ci.org/zendesk/prop)
 
 Prop is a simple gem for rate limiting requests of any kind. It allows you to configure hooks for registering certain actions, such that you can define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
 
