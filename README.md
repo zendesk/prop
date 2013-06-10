@@ -112,7 +112,7 @@ In case you need to perform e.g. a manual bulk operation:
 Prop.disabled do
   # No throttles will be tested here
 end
-```k
+```
 
 ## Threshold settings
 
