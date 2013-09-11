@@ -19,6 +19,16 @@ end
 
 You can choose to rely on whatever you'd like to use for transient storage. Prop does not do any sort of clean up of its key space, so you would have to implement that manually should you be using anything but an LRU cache like memcached.
 
+## Setting a Callback
+
+You can define an optional callback that is invoked when a rate limit is reached. In a Rails application you could use such a handler to add notification support:
+
+```ruby
+Prop.before_throttle do |handle, key, threshold, interval|
+  ActiveSupport::Notifications.instrument('throttle.prop', handle: handle, key: key, threshold: threshold, interval: interval)
+end
+```
+
 ## Defining thresholds
 
 Once the read and write operations are defined, you can optionally define thresholds. If, for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:

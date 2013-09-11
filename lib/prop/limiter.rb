@@ -6,7 +6,7 @@ module Prop
   class Limiter
 
     class << self
-      attr_accessor :handles, :reader, :writer
+      attr_accessor :handles, :reader, :writer, :before_throttle_callback
 
       def read(&blk)
         self.reader = blk
@@ -14,6 +14,10 @@ module Prop
 
       def write(&blk)
         self.writer = blk
+      end
+
+      def before_throttle(&blk)
+        self.before_throttle_callback = blk
       end
 
       # Public: Registers a handle for rate limiting
@@ -55,6 +59,10 @@ module Prop
 
         unless disabled?
           if at_threshold?(counter, options[:threshold])
+            unless before_throttle_callback.nil?
+              before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
+            end
+
             raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
           else
             increment = options.key?(:increment) ? options[:increment].to_i : 1
