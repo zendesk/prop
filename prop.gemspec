@@ -18,8 +18,7 @@ Gem::Specification.new "prop", "1.0.0" do |s|
 
   s.add_development_dependency('rake')
   s.add_development_dependency('bundler')
-  s.add_development_dependency('shoulda')
-  s.add_development_dependency('shoulda-matchers', '~> 1.5.0')
+  s.add_development_dependency('minitest')
   s.add_development_dependency('mocha')
 
   s.files = `git ls-files`.split("\n")
