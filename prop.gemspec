@@ -1,4 +1,4 @@
-Gem::Specification.new "prop", "1.0.0" do |s|
+Gem::Specification.new "prop", "1.0.1" do |s|
   s.name              = 'prop'
   s.version           = '1.0.0'
   s.date              = '2012-04-24'
