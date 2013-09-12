@@ -57,8 +57,8 @@ describe Prop::Limiter do
             assert_equal value, Prop.count(:something)
           end
 
-          context "and given a before_throttle callback" do
-            setup do
+          describe "and given a before_throttle callback" do
+            before do
               Prop.before_throttle do |handle, key, threshold, interval|
                 @handle = handle
                 @key = key
@@ -67,7 +67,7 @@ describe Prop::Limiter do
               end
             end
 
-            should "invoke callback with expected parameters" do
+            it "invoke callback with expected parameters" do
               assert_raises(Prop::RateLimited) { Prop.throttle!(:something, [:extra]) }
               assert_equal @handle, :something
               assert_equal @key, [:extra]
