@@ -1,6 +1,6 @@
 Gem::Specification.new "prop", "1.0.1" do |s|
   s.name              = 'prop'
-  s.version           = '1.0.0'
+  s.version           = '1.0.1'
   s.date              = '2012-04-24'
   s.rubyforge_project = 'prop'
   s.license           = "Apache License Version 2.0"
