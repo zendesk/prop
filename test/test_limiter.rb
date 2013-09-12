@@ -75,6 +75,25 @@ describe Prop::Limiter do
               assert_equal @interval, 10
             end
           end
+
+          context "and given a before_throttle callback" do
+            setup do
+              Prop.before_throttle do |handle, key, threshold, interval|
+                @handle = handle
+                @key = key
+                @threshold = threshold
+                @interval = interval
+              end
+            end
+
+            should "invoke callback with expected parameters" do
+              assert_raises(Prop::RateLimited) { Prop.throttle!(:something, [:extra]) }
+              assert_equal @handle, :something
+              assert_equal @key, [:extra]
+              assert_equal @threshold, 10
+              assert_equal @interval, 10
+            end
+          end
         end
 
         describe "not given a block" do
