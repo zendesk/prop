@@ -49,11 +49,10 @@ module Prop
       # handle  - the registered handle associated with the action
       # key     - a custom request specific key, e.g. [ account.id, "download", request.remote_ip ]
       # options - request specific overrides to the defaults configured for this handle
-      # blk     - an optional block of code that this throttle is guarding
+      # (optional) a block of code that this throttle is guarding
       #
-      # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
-      # Returns the value of the block if given a such, otherwise the current count of the throttle
-      def throttle!(handle, key = nil, options = {}, &blk)
+      # Returns true if the threshold for this handle has been reached, else returns false
+      def throttle(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
         counter = reader.call(cache_key).to_i
 
@@ -63,18 +62,35 @@ module Prop
               before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
             end
 
-            raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
+            true
           else
             increment = options.key?(:increment) ? options[:increment].to_i : 1
-            counter   = writer.call(cache_key, counter + increment)
+            writer.call(cache_key, counter + increment)
+
+            yield if block_given?
+
+            false
           end
         end
+      end
 
-        if block_given?
-          yield
-        else
-          counter
+      # Public: Records a single action for the given handle/key combination.
+      #
+      # handle  - the registered handle associated with the action
+      # key     - a custom request specific key, e.g. [ account.id, "download", request.remote_ip ]
+      # options - request specific overrides to the defaults configured for this handle
+      # (optional) a block of code that this throttle is guarding
+      #
+      # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
+      # Returns the value of the block if given a such, otherwise the current count of the throttle
+      def throttle!(handle, key = nil, options = {})
+        options, cache_key = prepare(handle, key, options)
+
+        if throttle(handle, key, options)
+          raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
         end
+
+        block_given? ? yield : reader.call(cache_key).to_i
       end
 
       # Public: Allows to query whether the given handle/key combination is currently throttled
