@@ -8,6 +8,6 @@ module Prop
   class << self
     extend Forwardable
     def_delegators :"Prop::Limiter", :read, :write, :configure, :disabled, :before_throttle
-    def_delegators :"Prop::Limiter", :throttle!, :throttled?, :count, :query, :reset
+    def_delegators :"Prop::Limiter", :throttle, :throttle!, :throttled?, :count, :query, :reset
   end
 end
