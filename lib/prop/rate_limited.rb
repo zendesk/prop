@@ -1,6 +1,6 @@
 module Prop
   class RateLimited < StandardError
-    attr_accessor :handle, :cache_key, :retry_after, :description
+    attr_accessor :handle, :cache_key, :retry_after, :description, :category
 
     def initialize(options)
       handle    = options.fetch(:handle)
@@ -11,6 +11,7 @@ module Prop
       super("#{handle} threshold of #{threshold} tries per #{interval}s exceeded for key '#{options[:key].inspect}', hash #{cache_key}")
 
       self.description = options[:description]
+      self.category    = options[:category]
       self.handle      = handle
       self.cache_key   = cache_key
       self.retry_after = interval - Time.now.to_i % interval
