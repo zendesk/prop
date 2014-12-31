@@ -194,4 +194,12 @@ describe Prop do
     end
   end
 
+  describe "#handles" do
+    it "returns the handle configuration" do
+      Prop.configure(:something, :threshold => 100, :interval => 30)
+      config = Prop.handles[:something]
+      assert_equal 100, config[:threshold]
+      assert_equal 30, config[:interval]
+    end
+  end
 end

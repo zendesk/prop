@@ -17,7 +17,7 @@ module Prop
     end
 
     def config
-      Prop::Limiter.get_handle_config(self.handle)
+      Prop.handles[@handle]
     end
   end
 end

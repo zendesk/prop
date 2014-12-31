@@ -34,15 +34,6 @@ module Prop
         self.handles[handle] = defaults
       end
 
-      # Public: Returns the configuration associated with a handle
-      #
-      # handle   - the name of the handle to query
-      #
-      # Returns nil if no handle is registered with the given name
-      def get_handle_config(handle)
-        self.handles[handle] if self.handles
-      end
-
       # Public: Disables Prop for a block of code
       #
       # block    - a block of code within which Prop will not raise
@@ -136,6 +127,10 @@ module Prop
       end
       alias :query :count
 
+      def handles
+        @handles ||= {}
+      end
+
       private
 
       def at_threshold?(mark, threshold)
@@ -155,7 +150,6 @@ module Prop
 
         [ options, cache_key ]
       end
-
     end
   end
 end

@@ -148,33 +148,19 @@ Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { ex
 
 ## Optional configuration
 
-Sometimes, it's useful to store additional metadata on a throttle. For example,
-you might have several throttles that fit into the same category, such as API
-rate limitation, and want to check if a throttle belongs to this category
-when rescuing the `Prop::RateLimited` exception.
-
-To store this type of metadata, you can pass arbitrary options to `Prop.configure`.
-In this example, `:category` is additional metadata that Prop pays no attention
-to but which your code can access.
+You can add optional configuration to a prop and retrieve it using `Prop.handles[:foo]`:
 
 ```ruby
 Prop.configure(:api_query, :threshold => 10, :interval => 1.minute, :category => :api)
 Prop.configure(:api_insert, :threshold => 50, :interval => 1.minute, :category => :api)
-Prop.configure(:api_delete, :threshold => 25, :interval => 1.minute, :category => :api)
 Prop.configure(:password_failure, :threshold => 5, :interval => 1.minute, :category => :auth)
 ```
 
-The `Prop::Limiter.get_handle_config` method can be used to retrieve the configuration
-hash that was passed to `Prop.configure` for a given handle:
-
 ```
-Prop.get_handle_config(:api_query)
+Prop.handles(:api_query)[:category]
 ```
 
-On the `Prop::RateLimited` exception, there is also a `config` method which will return
-the configuration hash associated with the handle that raised the exception. Using this,
-in the `rescue` clause, your code can now easily distinguish between API rate limitations
-and authorization failures:
+You can use `Prop::RateLimited#config` to distinguish between errors:
 
 ```ruby
 rescue Prop::RateLimited => e
