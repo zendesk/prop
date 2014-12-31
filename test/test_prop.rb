@@ -111,12 +111,14 @@ describe Prop do
 
   describe "#throttle!" do
     it "increment counter correctly" do
+      Prop.configure(:hello, :threshold => 20, :interval => 20)
       3.times do |i|
         assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
       end
     end
 
     it "reset counter when time window is passed" do
+      Prop.configure(:hello, :threshold => 20, :interval => 20)
       3.times do |i|
         assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
       end
@@ -192,4 +194,12 @@ describe Prop do
     end
   end
 
+  describe "#configurations" do
+    it "returns the configuration" do
+      Prop.configure(:something, :threshold => 100, :interval => 30)
+      config = Prop.configurations[:something]
+      assert_equal 100, config[:threshold]
+      assert_equal 30, config[:interval]
+    end
+  end
 end

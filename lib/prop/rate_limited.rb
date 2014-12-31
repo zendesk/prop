@@ -15,5 +15,9 @@ module Prop
       self.cache_key   = cache_key
       self.retry_after = interval - Time.now.to_i % interval
     end
+
+    def config
+      Prop.configurations[@handle]
+    end
   end
 end

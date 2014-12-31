@@ -127,6 +127,11 @@ module Prop
       end
       alias :query :count
 
+      def handles
+        @handles ||= {}
+      end
+      alias :configurations :handles
+
       private
 
       def at_threshold?(mark, threshold)
@@ -146,7 +151,6 @@ module Prop
 
         [ options, cache_key ]
       end
-
     end
   end
 end

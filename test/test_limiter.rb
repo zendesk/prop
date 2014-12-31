@@ -1,6 +1,5 @@
 require 'helper'
 
-
 describe Prop::Limiter do
   before do
     @store = {}

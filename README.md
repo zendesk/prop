@@ -142,8 +142,35 @@ Prop.throttle!(:mails_per_hour, nil)
 The default (and smallest possible) increment is 1, you can set that to any integer value using :increment which is handy for building time based throttles:
 
 ```ruby
-Prop.setup(:execute_time, :threshold => 10, :interval => 1.minute)
+Prop.configure(:execute_time, :threshold => 10, :interval => 1.minute)
 Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { execute }).to_i)
+```
+
+## Optional configuration
+
+You can add optional configuration to a prop and retrieve it using `Prop.configurations[:foo]`:
+
+```ruby
+Prop.configure(:api_query, :threshold => 10, :interval => 1.minute, :category => :api)
+Prop.configure(:api_insert, :threshold => 50, :interval => 1.minute, :category => :api)
+Prop.configure(:password_failure, :threshold => 5, :interval => 1.minute, :category => :auth)
+```
+
+```
+Prop.configurations[:api_query][:category]
+```
+
+You can use `Prop::RateLimited#config` to distinguish between errors:
+
+```ruby
+rescue Prop::RateLimited => e
+  case e.config[:category]
+  when :api
+    raise APIRateLimit
+  when :auth
+    raise AuthFailure
+  ...
+end 
 ```
 
 ## License
