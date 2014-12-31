@@ -1,7 +1,7 @@
-Gem::Specification.new "prop", "1.0.2" do |s|
+Gem::Specification.new "prop", "1.1.0" do |s|
   s.name              = 'prop'
-  s.version           = '1.0.2'
-  s.date              = '2012-04-24'
+  s.version           = '1.1.0'
+  s.date              = '2014-12-31'
   s.rubyforge_project = 'prop'
   s.license           = "Apache License Version 2.0"
 
