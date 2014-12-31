@@ -142,8 +142,49 @@ Prop.throttle!(:mails_per_hour, nil)
 The default (and smallest possible) increment is 1, you can set that to any integer value using :increment which is handy for building time based throttles:
 
 ```ruby
-Prop.setup(:execute_time, :threshold => 10, :interval => 1.minute)
+Prop.configure(:execute_time, :threshold => 10, :interval => 1.minute)
 Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { execute }).to_i)
+```
+
+## Optional configuration
+
+Sometimes, it's useful to store additional metadata on a throttle. For example,
+you might have several throttles that fit into the same category, such as API
+rate limitation, and want to check if a throttle belongs to this category
+when rescuing the `Prop::RateLimited` exception.
+
+To store this type of metadata, you can pass arbitrary options to `Prop.configure`.
+In this example, `:category` is additional metadata that Prop pays no attention
+to but which your code can access.
+
+```ruby
+Prop.configure(:api_query, :threshold => 10, :interval => 1.minute, :category => :api)
+Prop.configure(:api_insert, :threshold => 50, :interval => 1.minute, :category => :api)
+Prop.configure(:api_delete, :threshold => 25, :interval => 1.minute, :category => :api)
+Prop.configure(:password_failure, :threshold => 5, :interval => 1.minute, :category => :auth)
+```
+
+The `Prop::Limiter.get_handle_config` method can be used to retrieve the configuration
+hash that was passed to `Prop.configure` for a given handle:
+
+```
+Prop.get_handle_config(:api_query)
+```
+
+On the `Prop::RateLimited` exception, there is also a `config` method which will return
+the configuration hash associated with the handle that raised the exception. Using this,
+in the `rescue` clause, your code can now easily distinguish between API rate limitations
+and authorization failures:
+
+```ruby
+rescue Prop::RateLimited => e
+  case e.config[:category]
+  when :api
+    raise APIRateLimit
+  when :auth
+    raise AuthFailure
+  ...
+end 
 ```
 
 ## License

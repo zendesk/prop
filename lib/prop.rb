@@ -7,7 +7,7 @@ module Prop
   # Short hand for accessing Prop::Limiter methods
   class << self
     extend Forwardable
-    def_delegators :"Prop::Limiter", :read, :write, :configure, :disabled, :before_throttle
+    def_delegators :"Prop::Limiter", :read, :write, :configure, :get_handle_config, :disabled, :before_throttle
     def_delegators :"Prop::Limiter", :throttle, :throttle!, :throttled?, :count, :query, :reset
   end
 end

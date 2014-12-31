@@ -1,6 +1,5 @@
 require 'helper'
 
-
 describe Prop::Limiter do
   before do
     @store = {}
@@ -149,6 +148,15 @@ describe Prop::Limiter do
           assert_equal 'block_value', Prop.throttle!(:something) { 'block_value' }
         end
       end
+    end
+  end
+
+  describe "#get_handle_config" do
+    it "returns the handle configuration" do
+      config = Prop::Limiter.get_handle_config(:something)
+      assert_equal Prop::Limiter.handles[:something], config
+      assert_equal 10, config[:threshold]
+      assert_equal 10, config[:interval]
     end
   end
 end
