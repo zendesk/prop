@@ -157,7 +157,7 @@ Prop.configure(:password_failure, :threshold => 5, :interval => 1.minute, :categ
 ```
 
 ```
-Prop.handles(:api_query)[:category]
+Prop.handles[:api_query][:category]
 ```
 
 You can use `Prop::RateLimited#config` to distinguish between errors:
