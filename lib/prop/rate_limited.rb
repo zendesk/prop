@@ -17,7 +17,7 @@ module Prop
     end
 
     def config
-      Prop.handles[@handle]
+      Prop.configurations[@handle]
     end
   end
 end

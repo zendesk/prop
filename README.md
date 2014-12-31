@@ -148,7 +148,7 @@ Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { ex
 
 ## Optional configuration
 
-You can add optional configuration to a prop and retrieve it using `Prop.handles[:foo]`:
+You can add optional configuration to a prop and retrieve it using `Prop.configurations[:foo]`:
 
 ```ruby
 Prop.configure(:api_query, :threshold => 10, :interval => 1.minute, :category => :api)
@@ -157,7 +157,7 @@ Prop.configure(:password_failure, :threshold => 5, :interval => 1.minute, :categ
 ```
 
 ```
-Prop.handles[:api_query][:category]
+Prop.configurations[:api_query][:category]
 ```
 
 You can use `Prop::RateLimited#config` to distinguish between errors:

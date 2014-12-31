@@ -130,6 +130,7 @@ module Prop
       def handles
         @handles ||= {}
       end
+      alias :configurations :handles
 
       private
 
