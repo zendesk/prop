@@ -1,4 +1,4 @@
-require 'helper'
+require_relative 'helper'
 
 require 'prop/middleware'
 require 'prop/rate_limited'

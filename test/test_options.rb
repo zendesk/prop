@@ -1,4 +1,4 @@
-require 'helper'
+require_relative 'helper'
 
 describe Prop::Options do
   describe "#build" do

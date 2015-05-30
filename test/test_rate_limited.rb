@@ -1,4 +1,4 @@
-require 'helper'
+require_relative 'helper'
 
 describe Prop::RateLimited do
   before do

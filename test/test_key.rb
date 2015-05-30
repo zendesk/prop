@@ -1,4 +1,4 @@
-require 'helper'
+require_relative 'helper'
 
 describe Prop::Key do
   describe "#build" do
