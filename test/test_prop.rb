@@ -1,4 +1,4 @@
-require 'helper'
+require_relative 'helper'
 
 # Integration level tests
 describe Prop do

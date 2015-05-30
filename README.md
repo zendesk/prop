@@ -1,5 +1,5 @@
 
-# Prop [![Build Status](https://secure.travis-ci.org/zendesk/prop.png)](http://travis-ci.org/zendesk/prop)
+# Prop [![Build Status](https://travis-ci.org/zendesk/prop.png)](https://travis-ci.org/zendesk/prop)
 
 Prop is a simple gem for rate limiting requests of any kind. It allows you to configure hooks for registering certain actions, such that you can define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
 
@@ -34,7 +34,7 @@ end
 Once the read and write operations are defined, you can optionally define thresholds. If, for example, you want to have a threshold on accepted emails per hour from a given user, you could define a threshold and interval (in seconds) for this like so:
 
 ```ruby
-Prop.configure(:mails_per_hour, :threshold => 100, :interval => 1.hour, :description => "Mail rate limit exceeded")
+Prop.configure(:mails_per_hour, threshold: 100, interval: 1.hour, description: "Mail rate limit exceeded")
 ```
 
 The `:mails_per_hour` in the above is called the "handle". You can now put the throttle to work with these values, by passing the handle to the respective methods in Prop:
@@ -82,7 +82,7 @@ If the throttle! method gets called more than "threshold" times within "interval
 ```ruby
 rescue_from Prop::RateLimited do |e|
   if e.handle == :authorization_attempt
-    render :status => :forbidden, :message => I18n.t(e.description)
+    render status: :forbidden, message: I18n.t(e.description)
   elsif ...
 
   end
@@ -142,8 +142,8 @@ Prop.throttle!(:mails_per_hour, nil)
 The default (and smallest possible) increment is 1, you can set that to any integer value using :increment which is handy for building time based throttles:
 
 ```ruby
-Prop.configure(:execute_time, :threshold => 10, :interval => 1.minute)
-Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { execute }).to_i)
+Prop.configure(:execute_time, threshold: 10, interval: 1.minute)
+Prop.throttle!(:execute_time, account.id, increment: (Benchmark.realtime { execute }).to_i)
 ```
 
 ## Optional configuration
@@ -151,9 +151,9 @@ Prop.throttle!(:execute_time, account.id, :increment => (Benchmark.realtime { ex
 You can add optional configuration to a prop and retrieve it using `Prop.configurations[:foo]`:
 
 ```ruby
-Prop.configure(:api_query, :threshold => 10, :interval => 1.minute, :category => :api)
-Prop.configure(:api_insert, :threshold => 50, :interval => 1.minute, :category => :api)
-Prop.configure(:password_failure, :threshold => 5, :interval => 1.minute, :category => :auth)
+Prop.configure(:api_query, threshold: 10, interval: 1.minute, category: :api)
+Prop.configure(:api_insert, threshold: 50, interval: 1.minute, category: :api)
+Prop.configure(:password_failure, threshold: 5, interval: 1.minute, category: :auth)
 ```
 
 ```
@@ -175,7 +175,7 @@ end
 
 ## License
 
-Copyright 2013 Zendesk
+Copyright 2015 Zendesk
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
