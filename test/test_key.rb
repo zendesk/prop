@@ -7,6 +7,12 @@ describe Prop::Key do
     end
   end
 
+  describe "#build_bucket_key" do
+    it "return a hexdigested key" do
+      assert_match /leaky_bucket\/[a-f0-9]+/, Prop::Key.build_bucket_key(:handle => :hello, :key => [ "foo", 2, :bar ], :interval => 60)
+    end
+  end
+
   describe "#normalize" do
     it "turn a Fixnum into a String" do
       assert_equal "3", Prop::Key.normalize(3)
