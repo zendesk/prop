@@ -1,6 +1,6 @@
 require_relative 'helper'
 
-describe LeakyBucket::Bucket do
+describe Prop::LeakyBucket::Bucket do
   before do
     @store = {}
     @key = "leaky_bucket_cache_key"
@@ -10,7 +10,7 @@ describe LeakyBucket::Bucket do
     Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100)
     Prop::Key.stubs(:build_bucket_key).returns(@key)
 
-    LeakyBucket::Bucket.reset_bucket(:something)
+    Prop::LeakyBucket::Bucket.reset_bucket(:something)
 
     @time = Time.now
     Time.stubs(:now).returns(@time)
@@ -23,7 +23,7 @@ describe LeakyBucket::Bucket do
 
     it "should update the bucket" do
       bucket_expected = { :bucket => 0, :last_updated => @time.to_i }
-      LeakyBucket::Bucket.update_bucket(@key, 1, 10)
+      Prop::LeakyBucket::Bucket.update_bucket(@key, 1, 10)
       assert_equal bucket_expected, @store[@key]
     end
   end
@@ -32,7 +32,7 @@ describe LeakyBucket::Bucket do
     describe "when the bucket is not full" do
       it "increments the count number and saves timestamp in the bucket" do
         bucket_expected = { :bucket => 1, :last_updated => @time.to_i }
-        assert !LeakyBucket::Bucket.leaky(:something)
+        assert !Prop::LeakyBucket::Bucket.leaky(:something)
         assert_equal bucket_expected, @store[@key]
       end
     end
@@ -44,7 +44,7 @@ describe LeakyBucket::Bucket do
 
       it "returns true and doesn't increment the count number in the bucket" do
         bucket_expected = { :bucket => 100, :last_updated => @time.to_i }
-        assert LeakyBucket::Bucket.leaky(:something)
+        assert Prop::LeakyBucket::Bucket.leaky(:something)
         assert_equal bucket_expected, @store[@key]
       end
     end
@@ -52,7 +52,7 @@ describe LeakyBucket::Bucket do
 
   describe "#leaky!" do
     it "throttles the given handle/key combination" do
-      LeakyBucket::Bucket.expects(:leaky).with(
+      Prop::LeakyBucket::Bucket.expects(:leaky).with(
         :something,
         :key,
         {
@@ -64,24 +64,25 @@ describe LeakyBucket::Bucket do
         }
       )
 
-      LeakyBucket::Bucket.leaky!(:something, :key, :options => true)
+      Prop::LeakyBucket::Bucket.leaky!(:something, :key, :options => true)
     end
 
     describe "when the bucket is full" do
       before do
-        LeakyBucket::Bucket.expects(:leaky).returns(true)
+        Prop::LeakyBucket::Bucket.expects(:leaky).returns(true)
       end
 
       it "raises RateLimited exception" do
         assert_raises Prop::RateLimited do
-          LeakyBucket::Bucket.leaky!(:something)
+          Prop::LeakyBucket::Bucket.leaky!(:something)
         end
       end
     end
 
     describe "when the bucket is not full" do
-      it "returns the counter value in the bucket" do
-        assert_equal 1, LeakyBucket::Bucket.leaky!(:something)
+      it "returns the bucket" do
+        expected_bucket = { :bucket => 1, :last_updated => @time.to_i }
+        assert_equal expected_bucket, Prop::LeakyBucket::Bucket.leaky!(:something)
       end
     end
   end
