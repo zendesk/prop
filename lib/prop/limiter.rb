@@ -1,6 +1,8 @@
 require 'prop/rate_limited'
 require 'prop/key'
 require 'prop/options'
+require 'prop/base_strategy'
+require 'prop/leaky_bucket_strategy'
 
 module Prop
   class Limiter
@@ -53,19 +55,18 @@ module Prop
       #
       # Returns true if the threshold for this handle has been reached, else returns false
       def throttle(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
-        counter = reader.call(cache_key).to_i
+        options, cache_key, strategy = prepare(handle, key, options)
+        counter = strategy.counter(cache_key, options)
 
         unless disabled?
-          if at_threshold?(counter, options[:threshold])
+          if strategy.at_threshold?(counter, options)
             unless before_throttle_callback.nil?
               before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
             end
 
             true
           else
-            increment = options.key?(:increment) ? options[:increment].to_i : 1
-            writer.call(cache_key, counter + increment)
+            strategy.increment(cache_key, options, counter)
 
             yield if block_given?
 
@@ -84,13 +85,13 @@ module Prop
       # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
       # Returns the value of the block if given a such, otherwise the current count of the throttle
       def throttle!(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
+        options, cache_key, strategy = prepare(handle, key, options)
 
         if throttle(handle, key, options)
           raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
         end
 
-        block_given? ? yield : reader.call(cache_key).to_i
+        block_given? ? yield : strategy.current_count(cache_key)
       end
 
       # Public: Allows to query whether the given handle/key combination is currently throttled
@@ -100,8 +101,9 @@ module Prop
       #
       # Returns true if a call to `throttle!` with same parameters would raise, otherwise false
       def throttled?(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
-        reader.call(cache_key).to_i >= options[:threshold]
+        options, cache_key, strategy = prepare(handle, key, options)
+        count = strategy.current_count(cache_key)
+        strategy.at_threshold?(count, options)
       end
 
       # Public: Resets a specific throttle
@@ -111,8 +113,8 @@ module Prop
       #
       # Returns nothing
       def reset(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
-        writer.call(cache_key, 0)
+        options, cache_key, strategy = prepare(handle, key, options)
+        strategy.reset(cache_key)
       end
 
       # Public: Counts the number of times the given handle/key combination has been hit in the current window
@@ -122,8 +124,8 @@ module Prop
       #
       # Returns a count of hits in the current window
       def count(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
-        reader.call(cache_key).to_i
+        options, cache_key, strategy = prepare(handle, key, options)
+        strategy.current_count(cache_key)
       end
       alias :query :count
 
@@ -134,22 +136,28 @@ module Prop
 
       private
 
-      def at_threshold?(mark, threshold)
-        mark >= threshold
+      def prepare(handle, key, params)
+        raise RuntimeError.new("No such handle configured: #{handle.inspect}") unless (Prop::Limiter.handles || {}).key?(handle)
+
+        defaults  = Prop::Limiter.handles[handle]
+        options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
+
+        if options[:leaky_bucket]
+          strategy = Prop::LeakyBucketStrategy
+          cache_key = Prop::Key.build_bucket_key(:key => key, :handle => handle)
+
+          options[:burst_rate] = options.fetch(:burst_rate).to_i
+          raise RuntimeError.new("Invalid burst rate setting") unless options[:burst_rate] > options[:threshold]
+        else
+          strategy = Prop::BaseStrategy
+          cache_key = Prop::Key.build(:key => key, :handle => handle, :interval => options[:interval])
+        end
+
+        [options, cache_key, strategy]
       end
 
       def disabled?
         !!@disabled
-      end
-
-      def prepare(handle, key, params)
-        raise RuntimeError.new("No such handle configured: #{handle.inspect}") unless (handles || {}).key?(handle)
-
-        defaults  = handles[handle]
-        options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
-        cache_key = Prop::Key.build(:key => key, :handle => handle, :interval => options[:interval])
-
-        [ options, cache_key ]
       end
     end
   end
