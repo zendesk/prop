@@ -15,15 +15,6 @@ module Prop
       "prop/#{Digest::MD5.hexdigest(cache_key)}"
     end
 
-    def self.build_bucket_key(options)
-      key       = options.fetch(:key)
-      handle    = options.fetch(:handle)
-
-      cache_key = normalize([ handle, key ])
-
-      "leaky_bucket/#{Digest::MD5.hexdigest(cache_key)}"
-    end
-
     # Simple key expansion only supports arrays and primitives
     def self.normalize(key)
       if key.is_a?(Array)

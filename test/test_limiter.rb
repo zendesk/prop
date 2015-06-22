@@ -156,7 +156,7 @@ describe Prop::Limiter do
   describe "LeakyBucketStrategy" do
     before do
       Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100, :leaky_bucket => true)
-      Prop::Key.stubs(:build_bucket_key).returns(@key)
+      Prop::LeakyBucketStrategy.stubs(:build).returns(@key)
 
       @start = Time.now
       Time.stubs(:now).returns(@start)

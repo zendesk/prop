@@ -137,21 +137,21 @@ module Prop
       private
 
       def prepare(handle, key, params)
-        raise RuntimeError.new("No such handle configured: #{handle.inspect}") unless (Prop::Limiter.handles || {}).key?(handle)
+        raise RuntimeError.new("No such handle configured: #{handle.inspect}") unless (handles || {}).key?(handle)
 
-        defaults  = Prop::Limiter.handles[handle]
+        defaults  = handles[handle]
         options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
 
         if options[:leaky_bucket]
           strategy = Prop::LeakyBucketStrategy
-          cache_key = Prop::Key.build_bucket_key(:key => key, :handle => handle)
 
           options[:burst_rate] = options.fetch(:burst_rate).to_i
           raise RuntimeError.new("Invalid burst rate setting") unless options[:burst_rate] > options[:threshold]
         else
           strategy = Prop::BaseStrategy
-          cache_key = Prop::Key.build(:key => key, :handle => handle, :interval => options[:interval])
         end
+
+        cache_key = strategy.build(:key => key, :handle => handle, :interval => options[:interval])
 
         [options, cache_key, strategy]
       end

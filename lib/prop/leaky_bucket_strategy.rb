@@ -1,8 +1,8 @@
 require 'prop/limiter'
+require 'prop/key'
 
 module Prop
   class LeakyBucketStrategy
-
     class << self
       def update_bucket(cache_key, interval, leak_rate)
         bucket = Prop::Limiter.reader.call(cache_key) || { :bucket => 0, :last_updated => 0 }
@@ -36,6 +36,15 @@ module Prop
 
       def at_threshold?(counter, options)
         counter >= options[:burst_rate]
+      end
+
+      def build(options)
+        key       = options.fetch(:key)
+        handle    = options.fetch(:handle)
+
+        cache_key = Prop::Key.normalize([ handle, key ])
+
+        "prop/leaky_bucket/#{Digest::MD5.hexdigest(cache_key)}"
       end
     end
   end

@@ -1,8 +1,8 @@
 require 'prop/limiter'
+require 'prop/key'
 
 module Prop
   class BaseStrategy
-
     class << self
       def counter(cache_key, options)
         Prop::Limiter.reader.call(cache_key).to_i
@@ -23,6 +23,18 @@ module Prop
 
       def at_threshold?(counter, options)
         counter >= options[:threshold]
+      end
+
+      # Builds the expiring cache key
+      def build(options)
+        key       = options.fetch(:key)
+        handle    = options.fetch(:handle)
+        interval  = options.fetch(:interval)
+
+        window    = (Time.now.to_i / interval)
+        cache_key = Prop::Key.normalize([ handle, key, window ])
+
+        "prop/#{Digest::MD5.hexdigest(cache_key)}"
       end
     end
   end
