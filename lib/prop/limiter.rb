@@ -91,7 +91,7 @@ module Prop
           raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
         end
 
-        block_given? ? yield : options[:strategy].current_count(cache_key)
+        block_given? ? yield : options[:strategy].counter(cache_key, options)
       end
 
       # Public: Allows to query whether the given handle/key combination is currently throttled
@@ -102,7 +102,7 @@ module Prop
       # Returns true if a call to `throttle!` with same parameters would raise, otherwise false
       def throttled?(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        count = options[:strategy].current_count(cache_key)
+        count = options[:strategy].counter(cache_key, options)
         options[:strategy].at_threshold?(count, options)
       end
 
@@ -125,7 +125,7 @@ module Prop
       # Returns a count of hits in the current window
       def count(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        options[:strategy].current_count(cache_key)
+        options[:strategy].counter(cache_key, options)
       end
       alias :query :count
 
@@ -136,6 +136,10 @@ module Prop
 
       private
 
+      def disabled?
+        !!@disabled
+      end
+
       def prepare(handle, key, params)
         raise RuntimeError.new("No such handle configured: #{handle.inspect}") unless (handles || {}).key?(handle)
 
@@ -143,11 +147,7 @@ module Prop
         options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
         cache_key = options[:strategy].build(:key => key, :handle => handle, :interval => options[:interval])
 
-        [options, cache_key]
-      end
-
-      def disabled?
-        !!@disabled
+        [ options, cache_key ]
       end
     end
   end

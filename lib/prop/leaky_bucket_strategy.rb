@@ -3,9 +3,11 @@ require 'prop/key'
 
 module Prop
   class LeakyBucketStrategy
+    DEFAULT_BUCKET = { :bucket => 0, :last_updated => 0 }
+
     class << self
       def update_bucket(cache_key, interval, leak_rate)
-        bucket = Prop::Limiter.reader.call(cache_key) || { :bucket => 0, :last_updated => 0 }
+        bucket = Prop::Limiter.reader.call(cache_key) || DEFAULT_BUCKET
         now = Time.now.to_i
         leak_amount = (now - bucket[:last_updated]) / interval * leak_rate
 
@@ -17,25 +19,20 @@ module Prop
 
       def counter(cache_key, options)
         update_bucket(cache_key, options[:interval], options[:threshold])
-        Prop::Limiter.reader.call(cache_key).fetch(:bucket).to_i
       end
 
       def increment(cache_key, options, counter)
         increment = options.key?(:increment) ? options[:increment].to_i : 1
-        bucket = { :bucket => counter + increment, :last_updated => Time.now.to_i }
+        bucket = { :bucket => counter[:bucket].to_i + increment, :last_updated => Time.now.to_i }
         Prop::Limiter.writer.call(cache_key, bucket)
       end
 
       def reset(cache_key)
-        Prop::Limiter.writer.call(cache_key, { :bucket => 0, :last_updated => Time.now.to_i })
-      end
-
-      def current_count(cache_key)
-        Prop::Limiter.reader.call(cache_key)[:bucket].to_i
+        Prop::Limiter.writer.call(cache_key, DEFAULT_BUCKET)
       end
 
       def at_threshold?(counter, options)
-        counter >= options[:burst_rate]
+        counter[:bucket] >= options[:burst_rate]
       end
 
       def build(options)

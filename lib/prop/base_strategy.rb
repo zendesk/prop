@@ -17,10 +17,6 @@ module Prop
         Prop::Limiter.writer.call(cache_key, 0)
       end
 
-      def current_count(cache_key)
-        Prop::Limiter.reader.call(cache_key).to_i
-      end
-
       def at_threshold?(counter, options)
         counter >= options[:threshold]
       end

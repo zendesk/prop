@@ -219,7 +219,8 @@ describe Prop::Limiter do
 
       describe "when the bucket is not full" do
         it "returns the bucket current count" do
-          assert_equal 1, Prop::Limiter.throttle!(:something)
+          expected_bucket = { :bucket => 1, :last_updated => @start.to_i }
+          assert_equal expected_bucket, Prop::Limiter.throttle!(:something)
         end
       end
     end
