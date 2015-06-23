@@ -32,7 +32,7 @@ module Prop
       end
 
       def at_threshold?(counter, options)
-        counter[:bucket] >= options[:burst_rate]
+        counter[:bucket].to_i >= options[:burst_rate]
       end
 
       def build(options)

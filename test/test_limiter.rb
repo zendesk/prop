@@ -156,7 +156,7 @@ describe Prop::Limiter do
 
   describe "LeakyBucketStrategy" do
     before do
-      Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100, :leaky_bucket => true)
+      Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100, :strategy => :leaky_bucket)
       Prop::LeakyBucketStrategy.stubs(:build).returns(@key)
 
       @start = Time.now
@@ -195,7 +195,6 @@ describe Prop::Limiter do
               :interval     => 1,
               :key          => 'key',
               :burst_rate   => 100,
-              :leaky_bucket => true,
               :strategy     => Prop::LeakyBucketStrategy,
               :options      => true
           }
@@ -218,7 +217,7 @@ describe Prop::Limiter do
       end
 
       describe "when the bucket is not full" do
-        it "returns the bucket current count" do
+        it "returns the bucket" do
           expected_bucket = { :bucket => 1, :last_updated => @start.to_i }
           assert_equal expected_bucket, Prop::Limiter.throttle!(:something)
         end

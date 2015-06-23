@@ -17,11 +17,11 @@ module Prop
       raise RuntimeError.new("Invalid threshold setting") unless result[:threshold] > 0
       raise RuntimeError.new("Invalid interval setting")  unless result[:interval] > 0
 
-      if result[:leaky_bucket]
+      if leaky_bucket.include?(result[:strategy])
         result[:burst_rate] = result[:burst_rate].to_i
         result[:strategy]   = Prop::LeakyBucketStrategy
 
-        raise RuntimeError.new("Invalid burst rate setting") unless result[:burst_rate] > result[:threshold]
+        raise RuntimeError.new("Invalid burst rate setting") if result[:burst_rate] < result[:threshold]
       else
         result[:strategy] = Prop::BaseStrategy
       end
@@ -29,5 +29,8 @@ module Prop
       result
     end
 
+    def self.leaky_bucket
+      [:leaky_bucket, "leaky_bucket", Prop::LeakyBucketStrategy]
+    end
   end
 end
