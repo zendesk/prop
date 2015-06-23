@@ -112,6 +112,7 @@ describe Prop::Limiter do
             :threshold => 10,
             :interval  => 10,
             :key       => 'key',
+            :strategy  => Prop::BaseStrategy,
             :options   => true
           }
         )
@@ -195,6 +196,7 @@ describe Prop::Limiter do
               :key          => 'key',
               :burst_rate   => 100,
               :leaky_bucket => true,
+              :strategy     => Prop::LeakyBucketStrategy,
               :options      => true
           }
         )

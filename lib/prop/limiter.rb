@@ -55,18 +55,18 @@ module Prop
       #
       # Returns true if the threshold for this handle has been reached, else returns false
       def throttle(handle, key = nil, options = {})
-        options, cache_key, strategy = prepare(handle, key, options)
-        counter = strategy.counter(cache_key, options)
+        options, cache_key = prepare(handle, key, options)
+        counter = options[:strategy].counter(cache_key, options)
 
         unless disabled?
-          if strategy.at_threshold?(counter, options)
+          if options[:strategy].at_threshold?(counter, options)
             unless before_throttle_callback.nil?
               before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
             end
 
             true
           else
-            strategy.increment(cache_key, options, counter)
+            options[:strategy].increment(cache_key, options, counter)
 
             yield if block_given?
 
@@ -85,13 +85,13 @@ module Prop
       # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
       # Returns the value of the block if given a such, otherwise the current count of the throttle
       def throttle!(handle, key = nil, options = {})
-        options, cache_key, strategy = prepare(handle, key, options)
+        options, cache_key = prepare(handle, key, options)
 
         if throttle(handle, key, options)
           raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
         end
 
-        block_given? ? yield : strategy.current_count(cache_key)
+        block_given? ? yield : options[:strategy].current_count(cache_key)
       end
 
       # Public: Allows to query whether the given handle/key combination is currently throttled
@@ -101,9 +101,9 @@ module Prop
       #
       # Returns true if a call to `throttle!` with same parameters would raise, otherwise false
       def throttled?(handle, key = nil, options = {})
-        options, cache_key, strategy = prepare(handle, key, options)
-        count = strategy.current_count(cache_key)
-        strategy.at_threshold?(count, options)
+        options, cache_key = prepare(handle, key, options)
+        count = options[:strategy].current_count(cache_key)
+        options[:strategy].at_threshold?(count, options)
       end
 
       # Public: Resets a specific throttle
@@ -113,8 +113,8 @@ module Prop
       #
       # Returns nothing
       def reset(handle, key = nil, options = {})
-        options, cache_key, strategy = prepare(handle, key, options)
-        strategy.reset(cache_key)
+        options, cache_key = prepare(handle, key, options)
+        options[:strategy].reset(cache_key)
       end
 
       # Public: Counts the number of times the given handle/key combination has been hit in the current window
@@ -124,8 +124,8 @@ module Prop
       #
       # Returns a count of hits in the current window
       def count(handle, key = nil, options = {})
-        options, cache_key, strategy = prepare(handle, key, options)
-        strategy.current_count(cache_key)
+        options, cache_key = prepare(handle, key, options)
+        options[:strategy].current_count(cache_key)
       end
       alias :query :count
 
@@ -141,19 +141,9 @@ module Prop
 
         defaults  = handles[handle]
         options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
+        cache_key = options[:strategy].build(:key => key, :handle => handle, :interval => options[:interval])
 
-        if options[:leaky_bucket]
-          strategy = Prop::LeakyBucketStrategy
-
-          options[:burst_rate] = options.fetch(:burst_rate).to_i
-          raise RuntimeError.new("Invalid burst rate setting") unless options[:burst_rate] > options[:threshold]
-        else
-          strategy = Prop::BaseStrategy
-        end
-
-        cache_key = strategy.build(:key => key, :handle => handle, :interval => options[:interval])
-
-        [options, cache_key, strategy]
+        [options, cache_key]
       end
 
       def disabled?
