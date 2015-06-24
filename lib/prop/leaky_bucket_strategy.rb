@@ -22,7 +22,7 @@ module Prop
       end
 
       def increment(cache_key, options, counter)
-        increment = options.key?(:increment) ? options[:increment].to_i : 1
+        increment = options.key?(:increment) ? options[:increment] : 1
         bucket = { :bucket => counter[:bucket].to_i + increment, :last_updated => Time.now.to_i }
         Prop::Limiter.writer.call(cache_key, bucket)
       end

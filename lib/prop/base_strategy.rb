@@ -9,7 +9,7 @@ module Prop
       end
 
       def increment(cache_key, options, counter)
-        increment = options.key?(:increment) ? options[:increment].to_i : 1
+        increment = options.key?(:increment) ? options[:increment] : 1
         Prop::Limiter.writer.call(cache_key, counter + increment)
       end
 

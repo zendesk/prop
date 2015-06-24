@@ -102,8 +102,8 @@ module Prop
       # Returns true if a call to `throttle!` with same parameters would raise, otherwise false
       def throttled?(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        count = options[:strategy].counter(cache_key, options)
-        options[:strategy].at_threshold?(count, options)
+        counter = options[:strategy].counter(cache_key, options)
+        options[:strategy].at_threshold?(counter, options)
       end
 
       # Public: Resets a specific throttle
