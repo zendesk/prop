@@ -7,13 +7,17 @@ describe Prop::LeakyBucketStrategy do
 
     Prop::Limiter.read  { |key| @store[key] }
     Prop::Limiter.write { |key, value| @store[key] = value }
-    Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100, :leaky_bucket => true)
-    Prop::Key.stubs(:build_bucket_key).returns(@key)
+    Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100, :strategy => :leaky_bucket)
+    Prop::LeakyBucketStrategy.stubs(:build).returns(@key)
 
     Prop::Limiter.reset(:something)
 
     @time = Time.now
     Time.stubs(:now).returns(@time)
+  end
+
+  after do
+    @store.delete(@key)
   end
 
   describe "#update_bucket" do

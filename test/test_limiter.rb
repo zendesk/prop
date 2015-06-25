@@ -3,18 +3,26 @@ require_relative 'helper'
 describe Prop::Limiter do
   before do
     @store = {}
+    @cache_key = "cache_key"
 
     Prop::Limiter.read  { |key| @store[key] }
     Prop::Limiter.write { |key, value| @store[key] = value }
-    Prop::Limiter.configure(:something, :threshold => 10, :interval => 10)
-
-    Prop.reset(:something)
 
     @start = Time.now
     Time.stubs(:now).returns(@start)
   end
 
   describe "BaseStrategy" do
+    before do
+      Prop::Limiter.configure(:something, :threshold => 10, :interval => 10)
+      Prop::BaseStrategy.stubs(:build).returns(@cache_key)
+      Prop.reset(:something)
+    end
+
+    after do
+      @store.delete(@cache_key)
+    end
+
     describe "#throttle" do
       describe "when disabled" do
         before { Prop::Limiter.stubs(:disabled?).returns(true) }
@@ -157,10 +165,11 @@ describe Prop::Limiter do
   describe "LeakyBucketStrategy" do
     before do
       Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100, :strategy => :leaky_bucket)
-      Prop::LeakyBucketStrategy.stubs(:build).returns(@key)
+      Prop::LeakyBucketStrategy.stubs(:build).returns(@cache_key)
+    end
 
-      @start = Time.now
-      Time.stubs(:now).returns(@start)
+    after do
+      @store.delete(@cache_key)
     end
 
     describe "#throttle" do
@@ -168,19 +177,19 @@ describe Prop::Limiter do
         it "increments the count number and saves timestamp in the bucket" do
           bucket_expected = { :bucket => 1, :last_updated => @start.to_i }
           assert !Prop::Limiter.throttle(:something)
-          assert_equal bucket_expected, @store[@key]
+          assert_equal bucket_expected, @store[@cache_key]
         end
       end
 
       describe "when the bucket is full" do
         before do
-          @store[@key] = { :bucket => 100, :last_updated => @start.to_i }
+          @store[@cache_key] = { :bucket => 100, :last_updated => @start.to_i }
         end
 
         it "returns true and doesn't increment the count number in the bucket" do
           bucket_expected = { :bucket => 100, :last_updated => @start.to_i }
           assert Prop::Limiter.throttle(:something)
-          assert_equal bucket_expected, @store[@key]
+          assert_equal bucket_expected, @store[@cache_key]
         end
       end
     end
@@ -199,7 +208,6 @@ describe Prop::Limiter do
               :options      => true
           }
         )
-        Prop::LeakyBucketStrategy.stubs(:current_count)
 
         Prop::Limiter.throttle!(:something, :key, :options => true)
       end
