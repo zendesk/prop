@@ -1,18 +1,13 @@
 require "digest/md5"
+require "prop/base_strategy"
+require "prop/leaky_bucket_strategy"
 
 module Prop
   class Key
 
-    # Builds the expiring cache key
-    def self.build(options)
-      key       = options.fetch(:key)
-      handle    = options.fetch(:handle)
-      interval  = options.fetch(:interval)
-
-      window    = (Time.now.to_i / interval)
-      cache_key = normalize([ handle, key, window ])
-
-      "prop/#{Digest::MD5.hexdigest(cache_key)}"
+    # Builds the expiring cache key by strategy class
+    def self.build(strategy, options)
+      strategy.build(options)
     end
 
     # Simple key expansion only supports arrays and primitives

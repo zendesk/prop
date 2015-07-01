@@ -145,7 +145,7 @@ module Prop
 
         defaults  = handles[handle]
         options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
-        cache_key = options[:strategy].build(:key => key, :handle => handle, :interval => options[:interval])
+        cache_key = Prop::Key.build(options[:strategy], :key => key, :handle => handle, :interval => options[:interval])
 
         [ options, cache_key ]
       end

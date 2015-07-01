@@ -2,8 +2,9 @@ require_relative 'helper'
 
 describe Prop::Key do
   describe "#build" do
-    it "return a hexdigested key" do
-      assert_match /prop\/[a-f0-9]+/, Prop::Key.build(:handle => :hello, :key => [ "foo", 2, :bar ], :interval => 60)
+    it "returns a hexdigested key" do
+      options = { :handle => :hello, :key => [ "foo", 2, :bar ], :interval => 60 }
+      assert_match /prop\/[a-f0-9]+/, Prop::Key.build(Prop::BaseStrategy, options)
     end
   end
 

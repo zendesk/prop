@@ -177,19 +177,19 @@ describe Prop::Limiter do
         it "increments the count number and saves timestamp in the bucket" do
           bucket_expected = { :bucket => 1, :last_updated => @start.to_i }
           assert !Prop::Limiter.throttle(:something)
-          assert_equal bucket_expected, @store[@cache_key]
+          assert_equal bucket_expected, Prop::Limiter.count(:something)
         end
       end
 
       describe "when the bucket is full" do
         before do
-          @store[@cache_key] = { :bucket => 100, :last_updated => @start.to_i }
+          Prop::LeakyBucketStrategy.stubs(:at_threshold?).returns(true)
         end
 
         it "returns true and doesn't increment the count number in the bucket" do
-          bucket_expected = { :bucket => 100, :last_updated => @start.to_i }
+          bucket_expected = { :bucket => 0, :last_updated => @start.to_i }
           assert Prop::Limiter.throttle(:something)
-          assert_equal bucket_expected, @store[@cache_key]
+          assert_equal bucket_expected, Prop::Limiter.count(:something)
         end
       end
     end
