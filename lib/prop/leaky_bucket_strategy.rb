@@ -13,6 +13,7 @@ module Prop
         bucket[:last_updated] = now
 
         Prop::Limiter.writer.call(cache_key, bucket)
+        bucket
       end
 
       def counter(cache_key, options)
