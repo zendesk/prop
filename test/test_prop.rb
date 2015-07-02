@@ -62,34 +62,63 @@ describe Prop do
   end
 
   describe "#reset" do
-    before do
-      Prop.configure :hello, :threshold => 10, :interval => 10
+    describe "when use base strategy" do
+      before do
+        Prop.configure :hello, :threshold => 10, :interval => 10
 
-      5.times do |i|
-        assert_equal (i + 1), Prop.throttle!(:hello)
+        5.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello)
+        end
+      end
+
+      it "set the correct counter to 0" do
+        Prop.throttle!(:hello, 'wibble')
+        Prop.throttle!(:hello, 'wibble')
+
+        Prop.reset(:hello)
+        assert_equal 1, Prop.throttle!(:hello)
+
+        assert_equal 3, Prop.throttle!(:hello, 'wibble')
+        Prop.reset(:hello, 'wibble')
+        assert_equal 1, Prop.throttle!(:hello, 'wibble')
       end
     end
 
-    it "set the correct counter to 0" do
-      Prop.throttle!(:hello, 'wibble')
-      Prop.throttle!(:hello, 'wibble')
+    describe "when use leaky bucket strategy" do
+      before do
+        Prop.configure :hello, :threshold => 2, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 10
 
-      Prop.reset(:hello)
-      assert_equal 1, Prop.throttle!(:hello)
+        5.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello)[:bucket]
+        end
+      end
 
-      assert_equal 3, Prop.throttle!(:hello, 'wibble')
-      Prop.reset(:hello, 'wibble')
-      assert_equal 1, Prop.throttle!(:hello, 'wibble')
+      it "set the correct counter to 0" do
+        Prop.reset(:hello)
+        assert_equal 1, Prop.throttle!(:hello)[:bucket]
+      end
     end
   end
 
   describe "#throttled?" do
-    it "return true once the threshold has been reached" do
-      Prop.configure(:hello, :threshold => 2, :interval => 10)
-      Prop.throttle!(:hello)
-      assert !Prop.throttled?(:hello)
-      Prop.throttle!(:hello)
-      assert Prop.throttled?(:hello)
+    describe "when use base strategy" do
+      it "return true once the threshold has been reached" do
+        Prop.configure(:hello, :threshold => 2, :interval => 10)
+        Prop.throttle!(:hello)
+        assert !Prop.throttled?(:hello)
+        Prop.throttle!(:hello)
+        assert Prop.throttled?(:hello)
+      end
+    end
+
+    describe "when use leaky bucket strategy" do
+      it "return true once the bucket has been filled" do
+        Prop.configure(:hello, :threshold => 1, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 2)
+        Prop.throttle!(:hello)
+        assert !Prop.throttled?(:hello)
+        Prop.throttle!(:hello)
+        assert Prop.throttled?(:hello)
+      end
     end
   end
 
@@ -110,33 +139,109 @@ describe Prop do
   end
 
   describe "#throttle!" do
-    it "increment counter correctly" do
-      Prop.configure(:hello, :threshold => 20, :interval => 20)
-      3.times do |i|
-        assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+    describe "when use base strategy" do
+      it "increment counter correctly" do
+        Prop.configure(:hello, :threshold => 20, :interval => 20)
+        3.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+        end
+      end
+
+      it "reset counter when time window is passed" do
+        Prop.configure(:hello, :threshold => 20, :interval => 20)
+        3.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+        end
+
+        Time.stubs(:now).returns(@start + 20)
+
+        3.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+        end
+      end
+
+      it "not increment the counter beyond the threshold" do
+        Prop.configure(:hello, :threshold => 5, :interval => 1)
+        10.times do |i|
+          Prop.throttle!(:hello) rescue nil
+        end
+
+        assert_equal 5, Prop.query(:hello)
+      end
+
+      it "raise Prop::RateLimited when the threshold is exceeded" do
+        Prop.configure(:hello, :threshold => 5, :interval => 10, :description => "Boom!")
+
+        5.times do |i|
+          Prop.throttle!(:hello, nil)
+        end
+        assert_raises(Prop::RateLimited) do
+          Prop.throttle!(:hello, nil)
+        end
+
+        begin
+          Prop.throttle!(:hello, nil)
+          fail
+        rescue Prop::RateLimited => e
+          assert_equal :hello, e.handle
+          assert_match "5 tries per 10s exceeded for key", e.message
+          assert_equal "Boom!", e.description
+          assert e.retry_after
+        end
       end
     end
 
-    it "reset counter when time window is passed" do
-      Prop.configure(:hello, :threshold => 20, :interval => 20)
-      3.times do |i|
-        assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+    describe "when use leaky bucket strategy" do
+      before do
+        Prop.configure(:hello, :threshold => 5, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 10, :description => "Boom!")
+      end
+      it "increments counter correctly" do
+        3.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello)[:bucket]
+        end
       end
 
-      Time.stubs(:now).returns(@start + 20)
+      it "leaks when time window is passed" do
+        3.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello)[:bucket]
+        end
 
-      3.times do |i|
-        assert_equal (i + 1), Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+        Time.stubs(:now).returns(@start + 10)
+
+        10.times do |i|
+          assert_equal (i + 1), Prop.throttle!(:hello)[:bucket]
+        end
+
+        Time.stubs(:now).returns(@start + 30)
+        assert_equal 0, Prop.query(:hello)[:bucket]
       end
-    end
 
-    it "not increment the counter beyond the threshold" do
-      Prop.configure(:hello, :threshold => 5, :interval => 1)
-      10.times do |i|
-        Prop.throttle!(:hello) rescue nil
+      it "not increment the counter beyond the burst rate" do
+        15.times do |i|
+          Prop.throttle!(:hello) rescue nil
+        end
+
+        assert_equal 10, Prop.query(:hello)[:bucket]
       end
 
-      assert_equal 5, Prop.query(:hello)
+      it "raises Prop::RateLimited when the bucket is full" do
+        10.times do |i|
+          Prop.throttle!(:hello, nil)
+        end
+        assert_raises(Prop::RateLimited) do
+          Prop.throttle!(:hello, nil)
+        end
+
+        begin
+          Prop.throttle!(:hello, nil)
+          fail
+        rescue Prop::RateLimited => e
+          assert_equal :hello, e.handle
+          assert_match "5 tries per 10s and burst rate 10 tries exceeded for key", e.message
+          assert_equal "Boom!", e.description
+          assert e.retry_after
+        end
+      end
     end
 
     it "support custom increments" do
@@ -150,27 +255,6 @@ describe Prop do
       Prop.throttle!(:hello, nil, :increment => 48)
 
       assert_equal 50, Prop.query(:hello)
-    end
-
-    it "raise Prop::RateLimited when the threshold is exceeded" do
-      Prop.configure(:hello, :threshold => 5, :interval => 10, :description => "Boom!")
-
-      5.times do |i|
-        Prop.throttle!(:hello, nil)
-      end
-      assert_raises(Prop::RateLimited) do
-        Prop.throttle!(:hello, nil)
-      end
-
-      begin
-        Prop.throttle!(:hello, nil)
-        fail
-      rescue Prop::RateLimited => e
-        assert_equal :hello, e.handle
-        assert_match "5 tries per 10s exceeded for key", e.message
-        assert_equal "Boom!", e.description
-        assert e.retry_after
-      end
     end
 
     it "raise a RuntimeError when a handle has not been configured" do

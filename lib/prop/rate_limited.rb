@@ -8,7 +8,11 @@ module Prop
       interval  = options.fetch(:interval).to_i
       threshold = options.fetch(:threshold).to_i
 
-      super("#{handle} threshold of #{threshold} tries per #{interval}s exceeded for key '#{options[:key].inspect}', hash #{cache_key}")
+      if burst_rate = options[:burst_rate]
+        super("#{handle} threshold of #{threshold} tries per #{interval}s and burst rate #{burst_rate} tries exceeded for key '#{options[:key].inspect}', hash #{cache_key}")
+      else
+        super("#{handle} threshold of #{threshold} tries per #{interval}s exceeded for key '#{options[:key].inspect}', hash #{cache_key}")
+      end
 
       self.description = options[:description]
       self.handle      = handle

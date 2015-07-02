@@ -3,11 +3,9 @@ require 'prop/key'
 
 module Prop
   class LeakyBucketStrategy
-    DEFAULT_BUCKET = { :bucket => 0, :last_updated => 0 }
-
     class << self
       def update_bucket(cache_key, interval, leak_rate)
-        bucket = Prop::Limiter.reader.call(cache_key) || DEFAULT_BUCKET
+        bucket = Prop::Limiter.reader.call(cache_key) || default_bucket
         now = Time.now.to_i
         leak_amount = (now - bucket[:last_updated]) / interval * leak_rate
 
@@ -28,7 +26,7 @@ module Prop
       end
 
       def reset(cache_key)
-        Prop::Limiter.writer.call(cache_key, DEFAULT_BUCKET)
+        Prop::Limiter.writer.call(cache_key, default_bucket)
       end
 
       def at_threshold?(counter, options)
@@ -42,6 +40,10 @@ module Prop
         cache_key = Prop::Key.normalize([ handle, key ])
 
         "prop/leaky_bucket/#{Digest::MD5.hexdigest(cache_key)}"
+      end
+
+      def default_bucket
+        { :bucket => 0, :last_updated => 0 }
       end
     end
   end
