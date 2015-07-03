@@ -17,7 +17,7 @@ module Prop
       end
 
       def counter(cache_key, options)
-        update_bucket(cache_key, options[:interval], options[:threshold])
+        update_bucket(cache_key, options[:interval], options[:threshold]).merge(burst_rate: options[:burst_rate])
       end
 
       def increment(cache_key, options, counter)

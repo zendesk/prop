@@ -30,7 +30,7 @@ describe Prop::LeakyBucketStrategy do
     end
 
     it "returns the current bucket" do
-      bucket_expected = { :bucket => 50, :last_updated => @time.to_i }
+      bucket_expected = { :bucket => 50, :last_updated => @time.to_i, :burst_rate => nil }
       assert_equal bucket_expected, Prop::LeakyBucketStrategy.counter(@key, :interval => 1, :threshold =>10)
     end
   end
