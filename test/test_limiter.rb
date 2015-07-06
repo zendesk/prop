@@ -12,10 +12,10 @@ describe Prop::Limiter do
     Time.stubs(:now).returns(@start)
   end
 
-  describe "BaseStrategy" do
+  describe "IntervalStrategy" do
     before do
       Prop::Limiter.configure(:something, :threshold => 10, :interval => 10)
-      Prop::BaseStrategy.stubs(:build).returns(@cache_key)
+      Prop::IntervalStrategy.stubs(:build).returns(@cache_key)
       Prop.reset(:something)
     end
 
@@ -36,7 +36,7 @@ describe Prop::Limiter do
         before { Prop::Limiter.stubs(:disabled?).returns(false) }
 
         describe "and the threshold has been reached" do
-          before { Prop::BaseStrategy.stubs(:at_threshold?).returns(true) }
+          before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(true) }
 
           it "returns true" do
             assert Prop.throttle(:something)
@@ -80,7 +80,7 @@ describe Prop::Limiter do
         end
 
         describe "and the threshold has not been reached" do
-          before { Prop::BaseStrategy.stubs(:at_threshold?).returns(false) }
+          before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(false) }
 
           it "returns false" do
             refute Prop.throttle(:something)
@@ -120,7 +120,7 @@ describe Prop::Limiter do
             :threshold => 10,
             :interval  => 10,
             :key       => 'key',
-            :strategy  => Prop::BaseStrategy,
+            :strategy  => Prop::IntervalStrategy,
             :options   => true
           }
         )

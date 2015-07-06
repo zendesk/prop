@@ -2,7 +2,7 @@ require 'prop/limiter'
 require 'prop/key'
 
 module Prop
-  class BaseStrategy
+  class IntervalStrategy
     class << self
       def counter(cache_key, options)
         Prop::Limiter.reader.call(cache_key).to_i

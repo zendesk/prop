@@ -29,7 +29,7 @@ module Prop
 
         result[:strategy] = Prop::LeakyBucketStrategy
       else
-        result[:strategy] = Prop::BaseStrategy
+        result[:strategy] = Prop::IntervalStrategy
       end
 
       result
