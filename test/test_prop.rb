@@ -217,7 +217,7 @@ describe Prop do
       end
 
       it "not increment the counter beyond the burst rate" do
-        15.times do |i|
+        15.times do
           Prop.throttle!(:hello) rescue nil
         end
 
@@ -225,7 +225,7 @@ describe Prop do
       end
 
       it "raises Prop::RateLimited when the bucket is full" do
-        10.times do |i|
+        10.times do
           Prop.throttle!(:hello, nil)
         end
         assert_raises(Prop::RateLimited) do

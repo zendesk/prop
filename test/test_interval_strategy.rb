@@ -13,16 +13,25 @@ describe Prop::IntervalStrategy do
   end
 
   describe "#counter" do
-    before { @store[@key] = 1 }
+    describe "when @store[@key] is nil" do
+      it "returns the current count" do
+        assert_equal 0, Prop::IntervalStrategy.counter(@key, nil)
+      end
+    end
 
-    it "returns the current count" do
-      assert_equal 1, Prop::IntervalStrategy.counter(@key, :interval => 1, :threshold =>10)
+    describe "when @store[@key] has an existing value" do
+      before { @store[@key] = 1 }
+
+      it "returns the current count" do
+        assert_equal 1, Prop::IntervalStrategy.counter(@key, nil)
+      end
     end
   end
 
   describe "#increment" do
     it "increments the bucket" do
-      assert_equal 6, Prop::IntervalStrategy.increment(@key, { :increment => 5 }, 1)
+      Prop::IntervalStrategy.increment(@key, { :increment => 5 }, 1)
+      assert_equal 6, Prop::IntervalStrategy.counter(@key, nil)
     end
   end
 
@@ -30,7 +39,8 @@ describe Prop::IntervalStrategy do
     before { @store[@key] = 100 }
 
     it "resets the bucket" do
-      assert_equal 0, Prop::IntervalStrategy.reset(@key)
+      Prop::IntervalStrategy.reset(@key)
+      assert_equal 0, Prop::IntervalStrategy.counter(@key, nil)
     end
   end
 

@@ -23,7 +23,8 @@ describe Prop::Middleware do
 
   describe "when the app call results in a raised throttle" do
     before do
-      @app.expects(:call).with(@env).raises(Prop::RateLimited.new(:handle => "foo", :threshold => 10, :interval => 60, :cache_key => "wibble", :description => "Boom!"))
+      @app.expects(:call).with(@env).raises(Prop::RateLimited.new(:handle => "foo", :threshold => 10, :interval => 60, :cache_key => "wibble", :description => "Boom!", :strategy => Prop::IntervalStrategy
+                                            ))
     end
 
     it "return the rate limited message" do
