@@ -32,6 +32,12 @@ module Prop
 
         "prop/#{Digest::MD5.hexdigest(cache_key)}"
       end
+
+      def threshold_reached(options)
+        threshold = options.fetch(:threshold)
+
+        "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s exceeded for key '#{options[:key].inspect}', hash #{options[:cache_key]}"
+      end
     end
   end
 end

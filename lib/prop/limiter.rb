@@ -1,7 +1,7 @@
 require 'prop/rate_limited'
 require 'prop/key'
 require 'prop/options'
-require 'prop/base_strategy'
+require 'prop/interval_strategy'
 require 'prop/leaky_bucket_strategy'
 
 module Prop
@@ -145,7 +145,7 @@ module Prop
 
         defaults  = handles[handle]
         options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
-        cache_key = Prop::Key.build(options[:strategy], :key => key, :handle => handle, :interval => options[:interval])
+        cache_key = options[:strategy].build(:key => key, :handle => handle, :interval => options[:interval])
 
         [ options, cache_key ]
       end

@@ -46,6 +46,13 @@ module Prop
       def default_bucket
         { :bucket => 0, :last_updated => 0 }
       end
+
+      def threshold_reached(options)
+        burst_rate = options.fetch(:burst_rate)
+        threshold  = options.fetch(:threshold)
+
+        "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s and burst rate #{burst_rate} tries exceeded for key '#{options[:key].inspect}', hash #{options[:cache_key]}"
+      end
     end
   end
 end
