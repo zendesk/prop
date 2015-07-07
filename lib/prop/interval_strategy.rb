@@ -1,4 +1,5 @@
 require 'prop/limiter'
+require 'prop/options'
 require 'prop/key'
 
 module Prop
@@ -9,7 +10,7 @@ module Prop
       end
 
       def increment(cache_key, options, counter)
-        increment = options.key?(:increment) ? options[:increment] : 1
+        increment = options.fetch(:increment, 1)
         Prop::Limiter.writer.call(cache_key, counter + increment)
       end
 
@@ -18,7 +19,7 @@ module Prop
       end
 
       def at_threshold?(counter, options)
-        counter >= options[:threshold]
+        counter >= options.fetch(:threshold)
       end
 
       # Builds the expiring cache key
@@ -37,6 +38,21 @@ module Prop
         threshold = options.fetch(:threshold)
 
         "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s exceeded for key '#{options[:key].inspect}', hash #{options[:cache_key]}"
+      end
+
+      def validate_options!(options)
+        validate_positive_integer(options[:threshold], :threshold)
+        validate_positive_integer(options[:interval], :interval)
+
+        if options.key?(:increment)
+          validate_positive_integer(options[:increment], :increment)
+        end
+      end
+
+      private
+
+      def validate_positive_integer(option, key)
+        raise ArgumentError.new("#{key.inspect} must be an positive Integer") if !option.is_a?(Fixnum) || option <= 0
       end
     end
   end

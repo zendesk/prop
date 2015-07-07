@@ -79,4 +79,11 @@ describe Prop::LeakyBucketStrategy do
       assert_match /prop\/leaky_bucket\/[a-f0-9]+/, Prop::LeakyBucketStrategy.build(:handle => :hello, :key => [ "foo", 2, :bar ])
     end
   end
+
+  describe "#validate_options!" do
+    it "raise when burst rate is not valid" do
+      @args = { :threshold => 10, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 'five' }
+      assert_raises(ArgumentError) { Prop::LeakyBucketStrategy.validate_options!(@args) }
+    end
+  end
 end

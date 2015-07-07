@@ -1,5 +1,7 @@
 require 'prop/limiter'
+require 'prop/options'
 require 'prop/key'
+require 'prop/interval_strategy'
 
 module Prop
   class LeakyBucketStrategy
@@ -21,7 +23,7 @@ module Prop
       end
 
       def increment(cache_key, options, counter)
-        increment = options.key?(:increment) ? options[:increment] : 1
+        increment = options.fetch(:increment, 1)
         bucket = { :bucket => counter[:bucket].to_i + increment, :last_updated => Time.now.to_i }
         Prop::Limiter.writer.call(cache_key, bucket)
       end
@@ -31,7 +33,7 @@ module Prop
       end
 
       def at_threshold?(counter, options)
-        counter[:bucket].to_i >= options[:burst_rate]
+        counter[:bucket].to_i >= options.fetch(:burst_rate)
       end
 
       def build(options)
@@ -52,6 +54,14 @@ module Prop
         threshold  = options.fetch(:threshold)
 
         "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s and burst rate #{burst_rate} tries exceeded for key '#{options[:key].inspect}', hash #{options[:cache_key]}"
+      end
+
+      def validate_options!(options)
+        Prop::IntervalStrategy.validate_options!(options)
+
+        if !options[:burst_rate].is_a?(Fixnum) || options[:burst_rate] < options[:threshold]
+          raise ArgumentError.new(":burst_rate must be an Integer and larger than :threshold")
+        end
       end
     end
   end
