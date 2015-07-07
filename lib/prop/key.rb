@@ -1,6 +1,4 @@
 require "digest/md5"
-require "prop/interval_strategy"
-require "prop/leaky_bucket_strategy"
 
 module Prop
   class Key
