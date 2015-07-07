@@ -200,12 +200,12 @@ describe Prop::Limiter do
           :something,
           :key,
           {
-              :threshold    => 10,
-              :interval     => 1,
-              :key          => 'key',
-              :burst_rate   => 100,
-              :strategy     => Prop::LeakyBucketStrategy,
-              :options      => true
+            :threshold  => 10,
+            :interval   => 1,
+            :key        => 'key',
+            :burst_rate => 100,
+            :strategy   => Prop::LeakyBucketStrategy,
+            :options    => true
           }
         )
 
