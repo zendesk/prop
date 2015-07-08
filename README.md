@@ -3,7 +3,10 @@
 
 Prop is a simple gem for rate limiting requests of any kind. It allows you to configure hooks for registering certain actions, such that you can define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
 
-Prop uses an interval to define a window of time using simple div arithmetic. This means that it's a worst-case throttle that will allow up to two times the specified requests within the specified interval.
+Prop supports two limiting strategies:
+
+* Basic strategy (default): Prop will use an interval to define a window of time using simple div arithmetic. This means that it's a worst-case throttle that will allow up to two times the specified requests within the specified interval.
+* Leaky bucket strategy: Prop also supports the [Leaky Bucket](https://en.wikipedia.org/wiki/Leaky_bucket) algorithm, which is similar to the basic strategy but also supports bursts up to a specified threshold.
 
 To get going with Prop, you first define the read and write operations. These define how you write a registered request and how to read the number of requests for a given action. For example, do something like the below in a Rails initializer:
 
@@ -172,6 +175,17 @@ rescue Prop::RateLimited => e
   ...
 end 
 ```
+
+## Using Leaky Bucket Algorithm
+
+You can add two additional configurations: `:strategy` and `:burst_rate` to use the [leaky bucket algorithm](https://en.wikipedia.org/wiki/Leaky_bucket). Prop will handle the details after configured, and you don't have to specify `:strategy` again when using `throttle`, `throttle!` or any other methods.
+
+```ruby
+Prop.configure(:api_request, strategy: :leaky_bucket, burst_rate: 20, threshold: 5, interval: 1.minute)
+```
+
+* `:threshold` value here would be the "leak rate" of leaky bucket algorithm. 
+
 
 ## License
 

@@ -1,6 +1,8 @@
 require 'prop/rate_limited'
 require 'prop/key'
 require 'prop/options'
+require 'prop/interval_strategy'
+require 'prop/leaky_bucket_strategy'
 
 module Prop
   class Limiter
@@ -54,18 +56,17 @@ module Prop
       # Returns true if the threshold for this handle has been reached, else returns false
       def throttle(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        counter = reader.call(cache_key).to_i
+        counter = @strategy.counter(cache_key, options)
 
         unless disabled?
-          if at_threshold?(counter, options[:threshold])
+          if @strategy.at_threshold?(counter, options)
             unless before_throttle_callback.nil?
               before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
             end
 
             true
           else
-            increment = options.key?(:increment) ? options[:increment].to_i : 1
-            writer.call(cache_key, counter + increment)
+            @strategy.increment(cache_key, options, counter)
 
             yield if block_given?
 
@@ -90,7 +91,7 @@ module Prop
           raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
         end
 
-        block_given? ? yield : reader.call(cache_key).to_i
+        block_given? ? yield : @strategy.counter(cache_key, options)
       end
 
       # Public: Allows to query whether the given handle/key combination is currently throttled
@@ -101,7 +102,8 @@ module Prop
       # Returns true if a call to `throttle!` with same parameters would raise, otherwise false
       def throttled?(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        reader.call(cache_key).to_i >= options[:threshold]
+        counter = @strategy.counter(cache_key, options)
+        @strategy.at_threshold?(counter, options)
       end
 
       # Public: Resets a specific throttle
@@ -112,7 +114,7 @@ module Prop
       # Returns nothing
       def reset(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        writer.call(cache_key, 0)
+        @strategy.reset(cache_key)
       end
 
       # Public: Counts the number of times the given handle/key combination has been hit in the current window
@@ -123,7 +125,7 @@ module Prop
       # Returns a count of hits in the current window
       def count(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        reader.call(cache_key).to_i
+        @strategy.counter(cache_key, options)
       end
       alias :query :count
 
@@ -134,10 +136,6 @@ module Prop
 
       private
 
-      def at_threshold?(mark, threshold)
-        mark >= threshold
-      end
-
       def disabled?
         !!@disabled
       end
@@ -147,7 +145,10 @@ module Prop
 
         defaults  = handles[handle]
         options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
-        cache_key = Prop::Key.build(:key => key, :handle => handle, :interval => options[:interval])
+
+        @strategy = options.fetch(:strategy)
+
+        cache_key = @strategy.build(:key => key, :handle => handle, :interval => options[:interval])
 
         [ options, cache_key ]
       end

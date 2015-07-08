@@ -6,9 +6,9 @@ module Prop
       handle    = options.fetch(:handle)
       cache_key = options.fetch(:cache_key)
       interval  = options.fetch(:interval).to_i
-      threshold = options.fetch(:threshold).to_i
+      strategy  = options.fetch(:strategy)
 
-      super("#{handle} threshold of #{threshold} tries per #{interval}s exceeded for key '#{options[:key].inspect}', hash #{cache_key}")
+      super(strategy.threshold_reached(options))
 
       self.description = options[:description]
       self.handle      = handle

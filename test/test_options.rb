@@ -23,12 +23,12 @@ describe Prop::Options do
     describe "when given invalid input" do
       it "raise when not given an interval" do
         @args[:defaults].delete(:interval)
-        assert_raises(RuntimeError) { Prop::Options.build(@args) }
+        assert_raises(ArgumentError) { Prop::Options.build(@args) }
       end
 
       it "raise when not given a threshold" do
         @args[:defaults].delete(:threshold)
-        assert_raises(RuntimeError) { Prop::Options.build(@args) }
+        assert_raises(ArgumentError) { Prop::Options.build(@args) }
       end
 
       it "raise when not given a key" do
@@ -38,6 +38,11 @@ describe Prop::Options do
           fail "it puke when not given a valid key"
         rescue
         end
+      end
+
+      it "raise when increment is not an positive Integer" do
+        @args[:defaults].merge!(:increment => "one")
+        assert_raises(ArgumentError) { Prop::Options.build(@args) }
       end
     end
   end

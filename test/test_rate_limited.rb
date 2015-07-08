@@ -12,7 +12,8 @@ describe Prop::RateLimited do
       :threshold => 10,
       :interval => 60,
       :cache_key => "wibble",
-      :description => "Boom!"
+      :description => "Boom!",
+      :strategy => Prop::IntervalStrategy
     )
   end
 
