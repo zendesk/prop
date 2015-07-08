@@ -1,4 +1,4 @@
-Gem::Specification.new "prop", "1.1.0" do |s|
+Gem::Specification.new "prop", "1.2.0" do |s|
   s.license = "Apache License Version 2.0"
 
   s.summary = "Gem for implementing rate limits."
