@@ -45,14 +45,14 @@ module Prop
         validate_positive_integer(options[:interval], :interval)
 
         if options.key?(:increment)
-          validate_positive_integer(options[:increment], :increment)
+          raise ArgumentError.new(":increment must be zero or a positive Integer") if !options[:increment].is_a?(Fixnum) || options[:increment] < 0
         end
       end
 
       private
 
       def validate_positive_integer(option, key)
-        raise ArgumentError.new("#{key.inspect} must be an positive Integer") if !option.is_a?(Fixnum) || option <= 0
+        raise ArgumentError.new("#{key.inspect} must be a positive Integer") if !option.is_a?(Fixnum) || option <= 0
       end
     end
   end

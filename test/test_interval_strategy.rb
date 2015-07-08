@@ -59,4 +59,13 @@ describe Prop::IntervalStrategy do
       assert_match /prop\/[a-f0-9]+/, Prop::IntervalStrategy.build(:handle => :hello, :key => [ "foo", 2, :bar ], :interval => 60)
     end
   end
+
+  describe "#validate_options!" do
+    describe "when :increment is zero" do
+      it "does not raise exception" do
+        arg = { :threshold => 1, :interval => 1, :increment => 0}
+        assert_nil Prop::IntervalStrategy.validate_options!(arg)
+      end
+    end
+  end
 end
