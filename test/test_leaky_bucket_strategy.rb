@@ -10,7 +10,7 @@ describe Prop::LeakyBucketStrategy do
   describe "#counter" do
     describe "when cache[@key] is nil" do
       it "returns the current bucket" do
-        bucket_expected = { bucket: 0, last_updated: @time.to_i, burst_rate: nil }
+        bucket_expected = { bucket: 0, last_updated: @time.to_i }
         Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10).must_equal bucket_expected
       end
     end
@@ -21,18 +21,23 @@ describe Prop::LeakyBucketStrategy do
       end
 
       it "returns the current bucket" do
-        bucket_expected = { bucket: 50, last_updated: @time.to_i, burst_rate: nil }
+        bucket_expected = { bucket: 50, last_updated: @time.to_i }
         Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10).must_equal bucket_expected
       end
     end
   end
 
   describe "#increment" do
-     it "increments the bucket" do
-       bucket_expected = { bucket: 6, last_updated: @time.to_i }
-       Prop::LeakyBucketStrategy.increment(@key, { increment: 5 }, bucket: 1)
-       Prop::Limiter.cache.read(@key).must_equal bucket_expected
-     end
+    it "increments an empty bucket" do
+      Prop::LeakyBucketStrategy.increment(@key, increment: 5, interval: 1, threshold: 10)
+      Prop::Limiter.cache.read(@key).must_equal bucket: 5, last_updated: @time.to_i
+    end
+
+    it "increments an existing bucket" do
+      Prop::LeakyBucketStrategy.increment(@key, increment: 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.increment(@key, increment: 5, interval: 1, threshold: 10)
+      Prop::Limiter.cache.read(@key).must_equal bucket: 10, last_updated: @time.to_i
+    end
   end
 
   describe "#reset" do
@@ -47,13 +52,15 @@ describe Prop::LeakyBucketStrategy do
     end
   end
 
-  describe "#at_threshold?" do
+  describe "#compare_threshold?" do
     it "returns true when bucket is full" do
-      assert Prop::LeakyBucketStrategy.at_threshold?({ bucket: 100 }, { burst_rate: 100 })
+      assert Prop::LeakyBucketStrategy.compare_threshold?({ bucket: 100 }, :>=, { burst_rate: 100 })
+      assert Prop::LeakyBucketStrategy.compare_threshold?({ bucket: 101 }, :>, { burst_rate: 100 })
     end
 
     it "returns false when bucket is not full" do
-      refute Prop::LeakyBucketStrategy.at_threshold?({ bucket: 99 }, { burst_rate: 100 })
+      refute Prop::LeakyBucketStrategy.compare_threshold?({ bucket: 99 }, :>=, { burst_rate: 100 })
+      refute Prop::LeakyBucketStrategy.compare_threshold?({ bucket: 100 }, :>, { burst_rate: 100 })
     end
   end
 
