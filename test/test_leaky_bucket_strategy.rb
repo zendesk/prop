@@ -12,18 +12,6 @@ describe Prop::LeakyBucketStrategy do
     Time.stubs(:now).returns(@time)
   end
 
-  describe "#update_bucket" do
-    before do
-      @store[@key] = { bucket: 100, last_updated: @time.to_i - 10 }
-    end
-
-    it "should update the bucket" do
-      bucket_expected = { bucket: 0, last_updated: @time.to_i }
-      Prop::LeakyBucketStrategy.update_bucket(@key, 1, 10)
-      @store[@key].must_equal bucket_expected
-    end
-  end
-
   describe "#counter" do
     describe "when @store[@key] is nil" do
       it "returns the current bucket" do

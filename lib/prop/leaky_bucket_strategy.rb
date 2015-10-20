@@ -6,18 +6,6 @@ require 'prop/interval_strategy'
 module Prop
   class LeakyBucketStrategy
     class << self
-      def update_bucket(cache_key, interval, leak_rate)
-        bucket = Prop::Limiter.reader.call(cache_key) || default_bucket
-        now = Time.now.to_i
-        leak_amount = (now - bucket[:last_updated]) / interval * leak_rate
-
-        bucket[:bucket] = [bucket[:bucket] - leak_amount, 0].max
-        bucket[:last_updated] = now
-
-        Prop::Limiter.writer.call(cache_key, bucket)
-        bucket
-      end
-
       def counter(cache_key, options)
         update_bucket(cache_key, options[:interval], options[:threshold]).merge(burst_rate: options[:burst_rate])
       end
@@ -45,10 +33,6 @@ module Prop
         "prop/leaky_bucket/#{Digest::MD5.hexdigest(cache_key)}"
       end
 
-      def default_bucket
-        { bucket: 0, last_updated: 0 }
-      end
-
       def threshold_reached(options)
         burst_rate = options.fetch(:burst_rate)
         threshold  = options.fetch(:threshold)
@@ -62,6 +46,24 @@ module Prop
         if !options[:burst_rate].is_a?(Fixnum) || options[:burst_rate] < options[:threshold]
           raise ArgumentError.new(":burst_rate must be an Integer and larger than :threshold")
         end
+      end
+
+      private
+
+      def default_bucket
+        { bucket: 0, last_updated: 0 }
+      end
+
+      def update_bucket(cache_key, interval, leak_rate)
+        bucket = Prop::Limiter.reader.call(cache_key) || default_bucket
+        now = Time.now.to_i
+        leak_amount = (now - bucket[:last_updated]) / interval * leak_rate
+
+        bucket[:bucket] = [bucket[:bucket] - leak_amount, 0].max
+        bucket[:last_updated] = now
+
+        Prop::Limiter.writer.call(cache_key, bucket)
+        bucket
       end
     end
   end
