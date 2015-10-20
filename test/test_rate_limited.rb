@@ -2,8 +2,7 @@ require_relative 'helper'
 
 describe Prop::RateLimited do
   before do
-    time = Time.at(1333685680)
-    Time.stubs(:now).returns(time)
+    freeze_time 1333685680
 
     Prop.configure :foo, threshold: 10, interval: 60, category: :api
 

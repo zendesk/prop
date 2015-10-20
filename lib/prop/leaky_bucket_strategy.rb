@@ -13,11 +13,11 @@ module Prop
       def increment(cache_key, options, counter)
         increment = options.fetch(:increment, 1)
         bucket = { bucket: counter[:bucket].to_i + increment, last_updated: Time.now.to_i }
-        Prop::Limiter.writer.call(cache_key, bucket)
+        Prop::Limiter.cache.write(cache_key, bucket)
       end
 
       def reset(cache_key)
-        Prop::Limiter.writer.call(cache_key, default_bucket)
+        Prop::Limiter.cache.write(cache_key, default_bucket)
       end
 
       def at_threshold?(counter, options)
@@ -55,14 +55,14 @@ module Prop
       end
 
       def update_bucket(cache_key, interval, leak_rate)
-        bucket = Prop::Limiter.reader.call(cache_key) || default_bucket
+        bucket = Prop::Limiter.cache.read(cache_key) || default_bucket
         now = Time.now.to_i
         leak_amount = (now - bucket[:last_updated]) / interval * leak_rate
 
         bucket[:bucket] = [bucket[:bucket] - leak_amount, 0].max
         bucket[:last_updated] = now
 
-        Prop::Limiter.writer.call(cache_key, bucket)
+        Prop::Limiter.cache.write(cache_key, bucket)
         bucket
       end
     end

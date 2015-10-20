@@ -138,7 +138,7 @@ describe Prop::Limiter do
         it "increments the count number and saves timestamp in the bucket" do
           refute Prop::Limiter.throttle(:something)
           Prop::Limiter.count(:something).must_equal(
-            bucket: 1, last_updated: @start.to_i, burst_rate: 100
+            bucket: 1, last_updated: @time.to_i, burst_rate: 100
           )
         end
       end
@@ -151,7 +151,7 @@ describe Prop::Limiter do
         it "returns true and doesn't increment the count number in the bucket" do
           assert Prop::Limiter.throttle(:something)
           Prop::Limiter.count(:something).must_equal(
-            bucket: 0, last_updated: @start.to_i, burst_rate: 100
+            bucket: 0, last_updated: @time.to_i, burst_rate: 100
           )
         end
       end
@@ -172,7 +172,7 @@ describe Prop::Limiter do
 
       describe "when the bucket is not full" do
         it "returns the bucket" do
-          expected_bucket = { bucket: 1, last_updated: @start.to_i, burst_rate: 100 }
+          expected_bucket = { bucket: 1, last_updated: @time.to_i, burst_rate: 100 }
           Prop::Limiter.throttle!(:something).must_equal expected_bucket
         end
 

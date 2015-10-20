@@ -6,16 +6,16 @@ module Prop
   class IntervalStrategy
     class << self
       def counter(cache_key, options)
-        Prop::Limiter.reader.call(cache_key).to_i
+        Prop::Limiter.cache.read(cache_key).to_i
       end
 
       def increment(cache_key, options, counter)
         increment = options.fetch(:increment, 1)
-        Prop::Limiter.writer.call(cache_key, counter + increment)
+        Prop::Limiter.cache.write(cache_key, counter + increment)
       end
 
       def reset(cache_key)
-        Prop::Limiter.writer.call(cache_key, 0)
+        Prop::Limiter.cache.write(cache_key, 0)
       end
 
       def at_threshold?(counter, options)

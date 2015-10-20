@@ -6,15 +6,32 @@ require 'mocha/setup'
 require 'time'
 require 'prop'
 
-Minitest::Test.class_eval do
-  def setup_fake_store
-    store = {}
-    Prop.read { |key| store[key] }
-    Prop.write { |key, value| store[key] = value }
+class MemoryStore
+  def initialize
+    @store = {}
   end
 
-  def freeze_time
-    @start = Time.now
-    Time.stubs(:now).returns(@start)
+  def read(key)
+    @store[key]
+  end
+
+  def write(key, value)
+    @store[key] = value
+  end
+
+  # simulate memcached increment behavior
+  def increment(key, value)
+    @store[key] += value if @store[key]
+  end
+end
+
+Minitest::Test.class_eval do
+  def setup_fake_store
+    Prop.cache = MemoryStore.new
+  end
+
+  def freeze_time(time = Time.now)
+    @time = time
+    Time.stubs(:now).returns(@time)
   end
 end

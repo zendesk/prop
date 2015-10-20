@@ -2,14 +2,9 @@ require_relative 'helper'
 
 describe Prop::IntervalStrategy do
   before do
-    @store = {}
     @key = "cache_key"
-
-    Prop::Limiter.read  { |key| @store[key] }
-    Prop::Limiter.write { |key, value| @store[key] = value }
-
-    @time = Time.now
-    Time.stubs(:now).returns(@time)
+    setup_fake_store
+    freeze_time
   end
 
   describe "#counter" do
@@ -20,7 +15,7 @@ describe Prop::IntervalStrategy do
     end
 
     describe "when @store[@key] has an existing value" do
-      before { @store[@key] = 1 }
+      before { Prop::Limiter.cache.write(@key, 1) }
 
       it "returns the current count" do
         Prop::IntervalStrategy.counter(@key, nil).must_equal 1
@@ -36,7 +31,7 @@ describe Prop::IntervalStrategy do
   end
 
   describe "#reset" do
-    before { @store[@key] = 100 }
+    before { Prop::Limiter.cache.write(@key, 100) }
 
     it "resets the bucket" do
       Prop::IntervalStrategy.reset(@key)

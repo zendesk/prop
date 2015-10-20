@@ -8,14 +8,22 @@ module Prop
   class Limiter
 
     class << self
-      attr_accessor :handles, :reader, :writer, :before_throttle_callback
+      attr_accessor :handles, :before_throttle_callback, :cache
 
       def read(&blk)
-        self.reader = blk
+        raise "Use .cache = "
       end
 
       def write(&blk)
-        self.writer = blk
+        raise "Use .cache = "
+      end
+
+      def cache=(cache)
+        [:read, :write, :increment].each do |method|
+          next if cache.respond_to?(method)
+          raise ArgumentError, "Cache needs to respond to #{method}"
+        end
+        @cache = cache
       end
 
       def before_throttle(&blk)

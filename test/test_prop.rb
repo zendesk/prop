@@ -149,7 +149,7 @@ describe Prop do
           Prop.throttle!(:hello, nil, threshold: 10, interval: 10).must_equal i + 1
         end
 
-        Time.stubs(:now).returns(@start + 20)
+        Time.stubs(:now).returns(@time + 20)
 
         3.times do |i|
           Prop.throttle!(:hello, nil, threshold: 10, interval: 10).must_equal i + 1
@@ -203,13 +203,13 @@ describe Prop do
           Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
 
-        Time.stubs(:now).returns(@start + 10)
+        Time.stubs(:now).returns(@time + 10)
 
         10.times do |i|
           Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
 
-        Time.stubs(:now).returns(@start + 30)
+        Time.stubs(:now).returns(@time + 30)
         Prop.query(:hello)[:bucket].must_equal 0
       end
 
