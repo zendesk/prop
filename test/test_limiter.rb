@@ -32,9 +32,7 @@ describe Prop::Limiter do
         end
       end
 
-      describe "when not disabled" do
-        before { Prop::Limiter.stubs(:disabled?).returns(false) }
-
+      describe "when enabled" do
         describe "and the threshold has been reached" do
           before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(true) }
 
@@ -45,37 +43,29 @@ describe Prop::Limiter do
           it "does not increment the throttle count" do
             Prop.throttle(:something)
 
-            assert_equal 0, Prop.count(:something)
+            Prop.count(:something).must_equal 0
           end
 
-          describe "when given a block" do
-            before { @test_block_executed = false }
-
-            it "does not execute the block" do
-              Prop.throttle(:something) { @test_block_executed = true }
-
-              refute @test_block_executed
-            end
+          it "does not execute a block" do
+            test_block_executed = false
+            Prop.throttle(:something) { test_block_executed = true }
+            refute test_block_executed
           end
 
-          describe "when a before_throttle callback has been specified" do
-            before do
-              Prop.before_throttle do |handle, key, threshold, interval|
-                @handle    = handle
-                @key       = key
-                @threshold = threshold
-                @interval  = interval
-              end
-
-              Prop.throttle(:something, [:extra])
+          it "invokes before_throttle callback" do
+            Prop.before_throttle do |handle, key, threshold, interval|
+              @handle    = handle
+              @key       = key
+              @threshold = threshold
+              @interval  = interval
             end
 
-            it "invokes callback with expected parameters" do
-              assert_equal @handle, :something
-              assert_equal @key, [:extra]
-              assert_equal @threshold, 10
-              assert_equal @interval, 10
-            end
+            Prop.throttle(:something, [:extra])
+
+            @handle.must_equal :something
+            @key.must_equal [:extra]
+            @threshold.must_equal 10
+            @interval.must_equal 10
           end
         end
 
@@ -89,23 +79,19 @@ describe Prop::Limiter do
           it "increments the throttle count by one" do
             Prop.throttle(:something)
 
-            assert_equal 1, Prop.count(:something)
+            Prop.count(:something).must_equal 1
           end
 
           it "increments the throttle count by the specified number when provided" do
             Prop.throttle(:something, nil, increment: 5)
 
-            assert_equal 5, Prop.count(:something)
+            Prop.count(:something).must_equal 5
           end
 
-          describe "when given a block" do
-            before { @test_block_executed = false }
-
-            it "executes the block" do
-              Prop.throttle(:something) { @test_block_executed = true }
-
-              assert @test_block_executed
-            end
+          it "executes a block" do
+            test_block_executed = false
+            Prop.throttle(:something) { test_block_executed = true }
+            assert test_block_executed
           end
         end
       end
@@ -135,28 +121,22 @@ describe Prop::Limiter do
           assert_raises(Prop::RateLimited) { Prop.throttle!(:something) }
         end
 
-        describe "when given a block" do
-          before { @test_block_executed = false }
-
-          it "does not executes the block" do
-            begin
-              Prop.throttle!(:something) { @test_block_executed = true }
-            rescue Prop::RateLimited
-              refute @test_block_executed
-            end
+        it "does not executes a block" do
+          test_block_executed = false
+          assert_raises Prop::RateLimited do
+            Prop.throttle!(:something) { test_block_executed = true }
           end
+          refute test_block_executed
         end
       end
 
       describe "when the threshold has not been reached" do
         it "returns the counter value" do
-          assert_equal Prop.count(:something) + 1, Prop.throttle!(:something)
+          Prop.throttle!(:something).must_equal Prop.count(:something)
         end
 
-        describe "when given a block" do
-          it "returns the return value of the block" do
-            assert_equal 'block_value', Prop.throttle!(:something) { 'block_value' }
-          end
+        it "returns the return value of a block" do
+          Prop.throttle!(:something) { 'block_value' }.must_equal 'block_value'
         end
       end
     end
@@ -175,9 +155,10 @@ describe Prop::Limiter do
     describe "#throttle" do
       describe "when the bucket is not full" do
         it "increments the count number and saves timestamp in the bucket" do
-          bucket_expected = { bucket: 1, last_updated: @start.to_i, burst_rate: 100 }
-          assert !Prop::Limiter.throttle(:something)
-          assert_equal bucket_expected, Prop::Limiter.count(:something)
+          refute Prop::Limiter.throttle(:something)
+          Prop::Limiter.count(:something).must_equal(
+            bucket: 1, last_updated: @start.to_i, burst_rate: 100
+          )
         end
       end
 
@@ -187,31 +168,15 @@ describe Prop::Limiter do
         end
 
         it "returns true and doesn't increment the count number in the bucket" do
-          bucket_expected = { bucket: 0, last_updated: @start.to_i, burst_rate: 100 }
           assert Prop::Limiter.throttle(:something)
-          assert_equal bucket_expected, Prop::Limiter.count(:something)
+          Prop::Limiter.count(:something).must_equal(
+            bucket: 0, last_updated: @start.to_i, burst_rate: 100
+          )
         end
       end
     end
 
     describe "#throttle!" do
-      it "throttles the given handle/key combination" do
-        Prop::Limiter.expects(:throttle).with(
-          :something,
-          :key,
-          {
-            threshold:  10,
-            interval:   1,
-            key:        'key',
-            burst_rate: 100,
-            strategy:   Prop::LeakyBucketStrategy,
-            options:    true
-          }
-        )
-
-        Prop::Limiter.throttle!(:something, :key, options: true)
-      end
-
       describe "when the bucket is full" do
         before do
           Prop::Limiter.expects(:throttle).returns(true)
@@ -227,7 +192,24 @@ describe Prop::Limiter do
       describe "when the bucket is not full" do
         it "returns the bucket" do
           expected_bucket = { bucket: 1, last_updated: @start.to_i, burst_rate: 100 }
-          assert_equal expected_bucket, Prop::Limiter.throttle!(:something)
+          Prop::Limiter.throttle!(:something).must_equal expected_bucket
+        end
+
+        it "throttles the given handle/key combination" do
+          Prop::Limiter.expects(:throttle).with(
+            :something,
+            :key,
+            {
+              threshold:  10,
+              interval:   1,
+              key:        'key',
+              burst_rate: 100,
+              strategy:   Prop::LeakyBucketStrategy,
+              options:    true
+            }
+          )
+
+          Prop::Limiter.throttle!(:something, :key, options: true)
         end
       end
     end

@@ -20,7 +20,7 @@ describe Prop::LeakyBucketStrategy do
     it "should update the bucket" do
       bucket_expected = { bucket: 0, last_updated: @time.to_i }
       Prop::LeakyBucketStrategy.update_bucket(@key, 1, 10)
-      assert_equal bucket_expected, @store[@key]
+      @store[@key].must_equal bucket_expected
     end
   end
 
@@ -28,7 +28,7 @@ describe Prop::LeakyBucketStrategy do
     describe "when @store[@key] is nil" do
       it "returns the current bucket" do
         bucket_expected = { bucket: 0, last_updated: @time.to_i, burst_rate: nil }
-        assert_equal bucket_expected, Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10)
+        Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10).must_equal bucket_expected
       end
     end
 
@@ -39,7 +39,7 @@ describe Prop::LeakyBucketStrategy do
 
       it "returns the current bucket" do
         bucket_expected = { bucket: 50, last_updated: @time.to_i, burst_rate: nil }
-        assert_equal bucket_expected, Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10)
+        Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10).must_equal bucket_expected
       end
     end
   end
@@ -48,7 +48,7 @@ describe Prop::LeakyBucketStrategy do
      it "increments the bucket" do
        bucket_expected = { bucket: 6, last_updated: @time.to_i }
        Prop::LeakyBucketStrategy.increment(@key, { increment: 5 }, bucket: 1)
-       assert_equal bucket_expected, Prop::Limiter.reader.call(@key)
+       Prop::Limiter.reader.call(@key).must_equal bucket_expected
      end
   end
 
@@ -60,7 +60,7 @@ describe Prop::LeakyBucketStrategy do
     it "resets the bucket" do
       bucket_expected = { bucket: 0, last_updated: 0 }
       Prop::LeakyBucketStrategy.reset(@key)
-      assert_equal bucket_expected, Prop::Limiter.reader.call(@key)
+      Prop::Limiter.reader.call(@key).must_equal bucket_expected
     end
   end
 
@@ -70,13 +70,13 @@ describe Prop::LeakyBucketStrategy do
     end
 
     it "returns false when bucket is not full" do
-      assert !Prop::LeakyBucketStrategy.at_threshold?({ bucket: 99 }, { burst_rate: 100 })
+      refute Prop::LeakyBucketStrategy.at_threshold?({ bucket: 99 }, { burst_rate: 100 })
     end
   end
 
   describe "#build" do
     it "returns a hexdigested key" do
-      assert_match /prop\/leaky_bucket\/[a-f0-9]+/, Prop::LeakyBucketStrategy.build(handle: :hello, key: [ "foo", 2, :bar ])
+      Prop::LeakyBucketStrategy.build(handle: :hello, key: [ "foo", 2, :bar ]).must_match /prop\/leaky_bucket\/[a-f0-9]+/
     end
   end
 

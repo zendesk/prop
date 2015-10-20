@@ -25,21 +25,21 @@ describe Prop do
     it "result in a default handle" do
       Prop.configure :hello_there, threshold: 4, interval: 10
       4.times do |i|
-        assert_equal i + 1, Prop.throttle!(:hello_there, 'some key')
+        Prop.throttle!(:hello_there, 'some key').must_equal i + 1
       end
 
       assert_raises(Prop::RateLimited) { Prop.throttle!(:hello_there, 'some key') }
-      assert_equal 5, Prop.throttle!(:hello_there, 'some key', threshold: 20)
+      Prop.throttle!(:hello_there, 'some key', threshold: 20).must_equal 5
     end
 
     it "create a handle accepts various cache key types" do
       Prop.configure :hello_there, threshold: 4, interval: 10
-      assert_equal 1, Prop.throttle!(:hello_there, 5)
-      assert_equal 2, Prop.throttle!(:hello_there, 5)
-      assert_equal 1, Prop.throttle!(:hello_there, '6')
-      assert_equal 2, Prop.throttle!(:hello_there, '6')
-      assert_equal 1, Prop.throttle!(:hello_there, [ 5, '6' ])
-      assert_equal 2, Prop.throttle!(:hello_there, [ 5, '6' ])
+      Prop.throttle!(:hello_there, 5).must_equal 1
+      Prop.throttle!(:hello_there, 5).must_equal 2
+      Prop.throttle!(:hello_there, '6').must_equal 1
+      Prop.throttle!(:hello_there, '6').must_equal 2
+      Prop.throttle!(:hello_there, [ 5, '6' ]).must_equal 1
+      Prop.throttle!(:hello_there, [ 5, '6' ]).must_equal 2
     end
   end
 
@@ -49,15 +49,15 @@ describe Prop do
     end
 
     it "not increase the throttle" do
-      assert_equal 1, Prop.throttle!(:hello)
-      assert_equal 2, Prop.throttle!(:hello)
+      Prop.throttle!(:hello).must_equal 1
+      Prop.throttle!(:hello).must_equal 2
       Prop.disabled do
-        assert_equal 2, Prop.throttle!(:hello)
-        assert_equal 2, Prop.throttle!(:hello)
+        Prop.throttle!(:hello).must_equal 2
+        Prop.throttle!(:hello).must_equal 2
         assert Prop::Limiter.send(:disabled?)
       end
       refute Prop::Limiter.send(:disabled?)
-      assert_equal 3, Prop.throttle!(:hello)
+      Prop.throttle!(:hello).must_equal 3
     end
   end
 
@@ -67,7 +67,7 @@ describe Prop do
         Prop.configure :hello, threshold: 10, interval: 10
 
         5.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello)
+          Prop.throttle!(:hello).must_equal i + 1
         end
       end
 
@@ -76,11 +76,11 @@ describe Prop do
         Prop.throttle!(:hello, 'wibble')
 
         Prop.reset(:hello)
-        assert_equal 1, Prop.throttle!(:hello)
+        Prop.throttle!(:hello).must_equal 1
 
-        assert_equal 3, Prop.throttle!(:hello, 'wibble')
+        Prop.throttle!(:hello, 'wibble').must_equal 3
         Prop.reset(:hello, 'wibble')
-        assert_equal 1, Prop.throttle!(:hello, 'wibble')
+        Prop.throttle!(:hello, 'wibble').must_equal 1
       end
     end
 
@@ -89,13 +89,13 @@ describe Prop do
         Prop.configure :hello, threshold: 2, interval: 10, strategy: :leaky_bucket, burst_rate: 10
 
         5.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello)[:bucket]
+          Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
       end
 
       it "set the correct counter to 0" do
         Prop.reset(:hello)
-        assert_equal 1, Prop.throttle!(:hello)[:bucket]
+        Prop.throttle!(:hello)[:bucket].must_equal 1
       end
     end
   end
@@ -130,11 +130,11 @@ describe Prop do
     end
 
     it "be aliased by #count" do
-      assert_equal Prop.count(:hello), 2
+      2.must_equal Prop.count(:hello)
     end
 
     it "return the number of hits on a throttle" do
-      assert_equal Prop.query(:hello), 2
+      2.must_equal Prop.query(:hello)
     end
   end
 
@@ -143,20 +143,20 @@ describe Prop do
       it "increment counter correctly" do
         Prop.configure(:hello, threshold: 20, interval: 20)
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello, nil, threshold: 10, interval: 10)
+          Prop.throttle!(:hello, nil, threshold: 10, interval: 10).must_equal i + 1
         end
       end
 
       it "reset counter when time window is passed" do
         Prop.configure(:hello, threshold: 20, interval: 20)
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello, nil, threshold: 10, interval: 10)
+          Prop.throttle!(:hello, nil, threshold: 10, interval: 10).must_equal i + 1
         end
 
         Time.stubs(:now).returns(@start + 20)
 
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello, nil, threshold: 10, interval: 10)
+          Prop.throttle!(:hello, nil, threshold: 10, interval: 10).must_equal i + 1
         end
       end
 
@@ -166,7 +166,7 @@ describe Prop do
           Prop.throttle!(:hello) rescue nil
         end
 
-        assert_equal 5, Prop.query(:hello)
+        Prop.query(:hello).must_equal 5
       end
 
       it "raise Prop::RateLimited when the threshold is exceeded" do
@@ -175,19 +175,19 @@ describe Prop do
         5.times do
           Prop.throttle!(:hello, nil)
         end
-        assert_raises(Prop::RateLimited) do
+
+        assert_raises Prop::RateLimited do
           Prop.throttle!(:hello, nil)
         end
 
-        begin
+        e = assert_raises Prop::RateLimited do
           Prop.throttle!(:hello, nil)
-          fail
-        rescue Prop::RateLimited => e
-          assert_equal :hello, e.handle
-          assert_match "5 tries per 10s exceeded for key", e.message
-          assert_equal "Boom!", e.description
-          assert e.retry_after
         end
+
+        e.handle.must_equal :hello
+        e.message.must_include "5 tries per 10s exceeded for key"
+        e.description.must_equal "Boom!"
+        assert e.retry_after
       end
     end
 
@@ -198,23 +198,23 @@ describe Prop do
 
       it "increments counter correctly" do
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello)[:bucket]
+          Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
       end
 
       it "leaks when time window is passed" do
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello)[:bucket]
+          Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
 
         Time.stubs(:now).returns(@start + 10)
 
         10.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello)[:bucket]
+          Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
 
         Time.stubs(:now).returns(@start + 30)
-        assert_equal 0, Prop.query(:hello)[:bucket]
+        Prop.query(:hello)[:bucket].must_equal 0
       end
 
       it "not increment the counter beyond the burst rate" do
@@ -222,26 +222,26 @@ describe Prop do
           Prop.throttle!(:hello) rescue nil
         end
 
-        assert_equal 10, Prop.query(:hello)[:bucket]
+        Prop.query(:hello)[:bucket].must_equal 10
       end
 
       it "raises Prop::RateLimited when the bucket is full" do
         10.times do
           Prop.throttle!(:hello, nil)
         end
-        assert_raises(Prop::RateLimited) do
+
+        assert_raises Prop::RateLimited do
           Prop.throttle!(:hello, nil)
         end
 
-        begin
+        e = assert_raises Prop::RateLimited do
           Prop.throttle!(:hello, nil)
-          fail
-        rescue Prop::RateLimited => e
-          assert_equal :hello, e.handle
-          assert_match "5 tries per 10s and burst rate 10 tries exceeded for key", e.message
-          assert_equal "Boom!", e.description
-          assert e.retry_after
         end
+
+        e.handle.must_equal :hello
+        e.message.must_include "5 tries per 10s and burst rate 10 tries exceeded for key"
+        e.description.must_equal "Boom!"
+        assert e.retry_after
       end
     end
 
@@ -251,11 +251,11 @@ describe Prop do
       Prop.throttle!(:hello)
       Prop.throttle!(:hello)
 
-      assert_equal 2, Prop.query(:hello)
+      Prop.query(:hello).must_equal 2
 
       Prop.throttle!(:hello, nil, increment: 48)
 
-      assert_equal 50, Prop.query(:hello)
+      Prop.query(:hello).must_equal 50
     end
 
     it "raise a RuntimeError when a handle has not been configured" do
@@ -274,8 +274,8 @@ describe Prop do
     it "be counted separately" do
       user_id = 42
       Prop.throttle!(:api_requests, user_id)
-      assert_equal(1, Prop.count(:api_requests, user_id))
-      assert_equal(0, Prop.count(:login_attempts, user_id))
+      Prop.count(:api_requests, user_id).must_equal 1
+      Prop.count(:login_attempts, user_id).must_equal 0
     end
   end
 
@@ -283,8 +283,8 @@ describe Prop do
     it "returns the configuration" do
       Prop.configure(:something, threshold: 100, interval: 30)
       config = Prop.configurations[:something]
-      assert_equal 100, config[:threshold]
-      assert_equal 30, config[:interval]
+      config[:threshold].must_equal 100
+      config[:interval].must_equal 30
     end
   end
 end

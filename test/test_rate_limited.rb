@@ -19,22 +19,22 @@ describe Prop::RateLimited do
 
   describe "#initialize" do
     it "returns an error instance" do
-      assert @error.is_a?(StandardError)
-      assert @error.is_a?(Prop::RateLimited)
+      @error.must_be_kind_of StandardError
+      @error.must_be_kind_of Prop::RateLimited
 
-      assert_equal :foo, @error.handle
-      assert_equal "wibble", @error.cache_key
-      assert_equal "Boom!", @error.description
-      assert_equal "foo threshold of 10 tries per 60s exceeded for key 'nil', hash wibble", @error.message
-      assert_equal 20, @error.retry_after
+      @error.handle.must_equal :foo
+      @error.cache_key.must_equal "wibble"
+      @error.description.must_equal "Boom!"
+      @error.message.must_equal "foo threshold of 10 tries per 60s exceeded for key 'nil', hash wibble"
+      @error.retry_after.must_equal 20
     end
   end
 
   describe "#config" do
     it "returns the original configuration" do
-      assert_equal 10, @error.config[:threshold]
-      assert_equal 60, @error.config[:interval]
-      assert_equal :api, @error.config[:category]
+      @error.config[:threshold].must_equal 10
+      @error.config[:interval].must_equal 60
+      @error.config[:category].must_equal :api
     end
   end
 end

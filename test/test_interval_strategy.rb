@@ -15,7 +15,7 @@ describe Prop::IntervalStrategy do
   describe "#counter" do
     describe "when @store[@key] is nil" do
       it "returns the current count" do
-        assert_equal 0, Prop::IntervalStrategy.counter(@key, nil)
+        Prop::IntervalStrategy.counter(@key, nil).must_equal 0
       end
     end
 
@@ -23,7 +23,7 @@ describe Prop::IntervalStrategy do
       before { @store[@key] = 1 }
 
       it "returns the current count" do
-        assert_equal 1, Prop::IntervalStrategy.counter(@key, nil)
+        Prop::IntervalStrategy.counter(@key, nil).must_equal 1
       end
     end
   end
@@ -31,7 +31,7 @@ describe Prop::IntervalStrategy do
   describe "#increment" do
     it "increments the bucket" do
       Prop::IntervalStrategy.increment(@key, { increment: 5 }, 1)
-      assert_equal 6, Prop::IntervalStrategy.counter(@key, nil)
+      Prop::IntervalStrategy.counter(@key, nil).must_equal 6
     end
   end
 
@@ -40,7 +40,7 @@ describe Prop::IntervalStrategy do
 
     it "resets the bucket" do
       Prop::IntervalStrategy.reset(@key)
-      assert_equal 0, Prop::IntervalStrategy.counter(@key, nil)
+      Prop::IntervalStrategy.counter(@key, nil).must_equal 0
     end
   end
 
@@ -50,13 +50,13 @@ describe Prop::IntervalStrategy do
     end
 
     it "returns false when the limit has not been reached" do
-      assert !Prop::IntervalStrategy.at_threshold?(99, { threshold: 100 })
+      refute Prop::IntervalStrategy.at_threshold?(99, { threshold: 100 })
     end
   end
 
   describe "#build" do
     it "returns a hexdigested key" do
-      assert_match /prop\/[a-f0-9]+/, Prop::IntervalStrategy.build(handle: :hello, key: [ "foo", 2, :bar ], interval: 60)
+      Prop::IntervalStrategy.build(handle: :hello, key: [ "foo", 2, :bar ], interval: 60).must_match /prop\/[a-f0-9]+/
     end
   end
 
@@ -64,7 +64,7 @@ describe Prop::IntervalStrategy do
     describe "when :increment is zero" do
       it "does not raise exception" do
         arg = { threshold: 1, interval: 1, increment: 0}
-        assert_nil Prop::IntervalStrategy.validate_options!(arg)
+        refute Prop::IntervalStrategy.validate_options!(arg)
       end
     end
   end

@@ -12,11 +12,11 @@ describe Prop::Options do
       end
 
       it "support defaults" do
-        assert_equal "moo", @options[:baz]
+        @options[:baz].must_equal "moo"
       end
 
       it "override defaults" do
-        assert_equal "bif", @options[:foo]
+        @options[:foo].must_equal "bif"
       end
     end
 
@@ -33,10 +33,8 @@ describe Prop::Options do
 
       it "raise when not given a key" do
         @args.delete(:key)
-        begin
+        assert_raises KeyError do
           Prop::Options.build(@args)
-          fail "it puke when not given a valid key"
-        rescue
         end
       end
 
