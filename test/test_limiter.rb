@@ -2,14 +2,9 @@ require_relative 'helper'
 
 describe Prop::Limiter do
   before do
-    @store = {}
     @cache_key = "cache_key"
-
-    Prop::Limiter.read  { |key| @store[key] }
-    Prop::Limiter.write { |key, value| @store[key] = value }
-
-    @start = Time.now
-    Time.stubs(:now).returns(@start)
+    setup_fake_store
+    freeze_time
   end
 
   describe "IntervalStrategy" do
@@ -17,10 +12,6 @@ describe Prop::Limiter do
       Prop::Limiter.configure(:something, threshold: 10, interval: 10)
       Prop::IntervalStrategy.stubs(:build).returns(@cache_key)
       Prop.reset(:something)
-    end
-
-    after do
-      @store.delete(@cache_key)
     end
 
     describe "#throttle" do
@@ -140,10 +131,6 @@ describe Prop::Limiter do
     before do
       Prop::Limiter.configure(:something, threshold: 10, interval: 1, burst_rate: 100, strategy: :leaky_bucket)
       Prop::LeakyBucketStrategy.stubs(:build).returns(@cache_key)
-    end
-
-    after do
-      @store.delete(@cache_key)
     end
 
     describe "#throttle" do

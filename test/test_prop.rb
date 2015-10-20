@@ -3,12 +3,8 @@ require_relative 'helper'
 # Integration level tests
 describe Prop do
   before do
-    store = {}
-    Prop.read  { |key| store[key] }
-    Prop.write { |key, value| store[key] = value }
-
-    @start = Time.now
-    Time.stubs(:now).returns(@start)
+    setup_fake_store
+    freeze_time
   end
 
   describe "#defaults" do
