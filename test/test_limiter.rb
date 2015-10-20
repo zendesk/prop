@@ -24,75 +24,69 @@ describe Prop::Limiter do
     end
 
     describe "#throttle" do
-      describe "when disabled" do
-        before { Prop::Limiter.stubs(:disabled?).returns(true) }
+      it "returns false when disabled" do
+        Prop::Limiter.disabled { Prop.throttle(:something) }.must_equal false
+      end
 
-        it "returns nil" do
-          assert_nil Prop.throttle(:something)
+      describe "and the threshold has been reached" do
+        before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(true) }
+
+        it "returns true" do
+          assert Prop.throttle(:something)
+        end
+
+        it "does not increment the throttle count" do
+          Prop.throttle(:something)
+
+          Prop.count(:something).must_equal 0
+        end
+
+        it "does not execute a block" do
+          test_block_executed = false
+          Prop.throttle(:something) { test_block_executed = true }
+          refute test_block_executed
+        end
+
+        it "invokes before_throttle callback" do
+          Prop.before_throttle do |handle, key, threshold, interval|
+            @handle    = handle
+            @key       = key
+            @threshold = threshold
+            @interval  = interval
+          end
+
+          Prop.throttle(:something, [:extra])
+
+          @handle.must_equal :something
+          @key.must_equal [:extra]
+          @threshold.must_equal 10
+          @interval.must_equal 10
         end
       end
 
-      describe "when enabled" do
-        describe "and the threshold has been reached" do
-          before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(true) }
+      describe "and the threshold has not been reached" do
+        before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(false) }
 
-          it "returns true" do
-            assert Prop.throttle(:something)
-          end
-
-          it "does not increment the throttle count" do
-            Prop.throttle(:something)
-
-            Prop.count(:something).must_equal 0
-          end
-
-          it "does not execute a block" do
-            test_block_executed = false
-            Prop.throttle(:something) { test_block_executed = true }
-            refute test_block_executed
-          end
-
-          it "invokes before_throttle callback" do
-            Prop.before_throttle do |handle, key, threshold, interval|
-              @handle    = handle
-              @key       = key
-              @threshold = threshold
-              @interval  = interval
-            end
-
-            Prop.throttle(:something, [:extra])
-
-            @handle.must_equal :something
-            @key.must_equal [:extra]
-            @threshold.must_equal 10
-            @interval.must_equal 10
-          end
+        it "returns false" do
+          refute Prop.throttle(:something)
         end
 
-        describe "and the threshold has not been reached" do
-          before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(false) }
+        it "increments the throttle count by one" do
+          Prop.throttle(:something)
 
-          it "returns false" do
-            refute Prop.throttle(:something)
-          end
+          Prop.count(:something).must_equal 1
+        end
 
-          it "increments the throttle count by one" do
-            Prop.throttle(:something)
+        it "increments the throttle count by the specified number when provided" do
+          Prop.throttle(:something, nil, increment: 5)
 
-            Prop.count(:something).must_equal 1
-          end
+          Prop.count(:something).must_equal 5
+        end
 
-          it "increments the throttle count by the specified number when provided" do
-            Prop.throttle(:something, nil, increment: 5)
-
-            Prop.count(:something).must_equal 5
-          end
-
-          it "executes a block" do
-            test_block_executed = false
-            Prop.throttle(:something) { test_block_executed = true }
-            assert test_block_executed
-          end
+        it "executes a block" do
+          test_block_executed = false
+          Prop.throttle(:something) { test_block_executed = true }
+          assert test_block_executed
         end
       end
     end

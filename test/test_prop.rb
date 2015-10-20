@@ -13,11 +13,11 @@ describe Prop do
 
   describe "#defaults" do
     it "raise errors on invalid configuation" do
-      assert_raises(RuntimeError) do
+      assert_raises(ArgumentError) do
         Prop.configure :hello_there, threshold: 20, interval: 'hello'
       end
 
-      assert_raises(RuntimeError) do
+      assert_raises(ArgumentError) do
         Prop.configure :hello_there, threshold: 'wibble', interval: 100
       end
     end
@@ -259,7 +259,7 @@ describe Prop do
     end
 
     it "raise a RuntimeError when a handle has not been configured" do
-      assert_raises(RuntimeError) do
+      assert_raises KeyError do
         Prop.throttle!(:no_such_handle, nil, threshold: 5, interval: 10)
       end
     end
