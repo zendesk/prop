@@ -24,7 +24,7 @@ module Prop
 
       def increment(cache_key, options, counter)
         increment = options.fetch(:increment, 1)
-        bucket = { :bucket => counter[:bucket].to_i + increment, :last_updated => Time.now.to_i }
+        bucket = { bucket: counter[:bucket].to_i + increment, last_updated: Time.now.to_i }
         Prop::Limiter.writer.call(cache_key, bucket)
       end
 
@@ -46,7 +46,7 @@ module Prop
       end
 
       def default_bucket
-        { :bucket => 0, :last_updated => 0 }
+        { bucket: 0, last_updated: 0 }
       end
 
       def threshold_reached(options)

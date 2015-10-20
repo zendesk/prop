@@ -5,15 +5,15 @@ describe Prop::RateLimited do
     time = Time.at(1333685680)
     Time.stubs(:now).returns(time)
 
-    Prop.configure :foo, :threshold => 10, :interval => 60, :category => :api
+    Prop.configure :foo, threshold: 10, interval: 60, category: :api
 
     @error = Prop::RateLimited.new(
-      :handle => :foo,
-      :threshold => 10,
-      :interval => 60,
-      :cache_key => "wibble",
-      :description => "Boom!",
-      :strategy => Prop::IntervalStrategy
+      handle: :foo,
+      threshold: 10,
+      interval: 60,
+      cache_key: "wibble",
+      description: "Boom!",
+      strategy: Prop::IntervalStrategy
     )
   end
 

@@ -14,26 +14,26 @@ describe Prop do
   describe "#defaults" do
     it "raise errors on invalid configuation" do
       assert_raises(RuntimeError) do
-        Prop.configure :hello_there, :threshold => 20, :interval => 'hello'
+        Prop.configure :hello_there, threshold: 20, interval: 'hello'
       end
 
       assert_raises(RuntimeError) do
-        Prop.configure :hello_there, :threshold => 'wibble', :interval => 100
+        Prop.configure :hello_there, threshold: 'wibble', interval: 100
       end
     end
 
     it "result in a default handle" do
-      Prop.configure :hello_there, :threshold => 4, :interval => 10
+      Prop.configure :hello_there, threshold: 4, interval: 10
       4.times do |i|
         assert_equal i + 1, Prop.throttle!(:hello_there, 'some key')
       end
 
       assert_raises(Prop::RateLimited) { Prop.throttle!(:hello_there, 'some key') }
-      assert_equal 5, Prop.throttle!(:hello_there, 'some key', :threshold => 20)
+      assert_equal 5, Prop.throttle!(:hello_there, 'some key', threshold: 20)
     end
 
     it "create a handle accepts various cache key types" do
-      Prop.configure :hello_there, :threshold => 4, :interval => 10
+      Prop.configure :hello_there, threshold: 4, interval: 10
       assert_equal 1, Prop.throttle!(:hello_there, 5)
       assert_equal 2, Prop.throttle!(:hello_there, 5)
       assert_equal 1, Prop.throttle!(:hello_there, '6')
@@ -45,7 +45,7 @@ describe Prop do
 
   describe "#disable" do
     before do
-      Prop.configure :hello, :threshold => 10, :interval => 10
+      Prop.configure :hello, threshold: 10, interval: 10
     end
 
     it "not increase the throttle" do
@@ -64,7 +64,7 @@ describe Prop do
   describe "#reset" do
     describe "when use interval strategy" do
       before do
-        Prop.configure :hello, :threshold => 10, :interval => 10
+        Prop.configure :hello, threshold: 10, interval: 10
 
         5.times do |i|
           assert_equal i + 1, Prop.throttle!(:hello)
@@ -86,7 +86,7 @@ describe Prop do
 
     describe "when use leaky bucket strategy" do
       before do
-        Prop.configure :hello, :threshold => 2, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 10
+        Prop.configure :hello, threshold: 2, interval: 10, strategy: :leaky_bucket, burst_rate: 10
 
         5.times do |i|
           assert_equal i + 1, Prop.throttle!(:hello)[:bucket]
@@ -103,7 +103,7 @@ describe Prop do
   describe "#throttled?" do
     describe "when use interval strategy" do
       it "return true once the threshold has been reached" do
-        Prop.configure(:hello, :threshold => 2, :interval => 10)
+        Prop.configure(:hello, threshold: 2, interval: 10)
         Prop.throttle!(:hello)
         refute Prop.throttled?(:hello)
         Prop.throttle!(:hello)
@@ -113,7 +113,7 @@ describe Prop do
 
     describe "when use leaky bucket strategy" do
       it "return true once the bucket has been filled" do
-        Prop.configure(:hello, :threshold => 1, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 2)
+        Prop.configure(:hello, threshold: 1, interval: 10, strategy: :leaky_bucket, burst_rate: 2)
         Prop.throttle!(:hello)
         refute Prop.throttled?(:hello)
         Prop.throttle!(:hello)
@@ -124,7 +124,7 @@ describe Prop do
 
   describe "#count" do
     before do
-      Prop.configure(:hello, :threshold => 20, :interval => 20)
+      Prop.configure(:hello, threshold: 20, interval: 20)
       Prop.throttle!(:hello)
       Prop.throttle!(:hello)
     end
@@ -141,27 +141,27 @@ describe Prop do
   describe "#throttle!" do
     describe "when use interval strategy" do
       it "increment counter correctly" do
-        Prop.configure(:hello, :threshold => 20, :interval => 20)
+        Prop.configure(:hello, threshold: 20, interval: 20)
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+          assert_equal i + 1, Prop.throttle!(:hello, nil, threshold: 10, interval: 10)
         end
       end
 
       it "reset counter when time window is passed" do
-        Prop.configure(:hello, :threshold => 20, :interval => 20)
+        Prop.configure(:hello, threshold: 20, interval: 20)
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+          assert_equal i + 1, Prop.throttle!(:hello, nil, threshold: 10, interval: 10)
         end
 
         Time.stubs(:now).returns(@start + 20)
 
         3.times do |i|
-          assert_equal i + 1, Prop.throttle!(:hello, nil, :threshold => 10, :interval => 10)
+          assert_equal i + 1, Prop.throttle!(:hello, nil, threshold: 10, interval: 10)
         end
       end
 
       it "not increment the counter beyond the threshold" do
-        Prop.configure(:hello, :threshold => 5, :interval => 1)
+        Prop.configure(:hello, threshold: 5, interval: 1)
         10.times do
           Prop.throttle!(:hello) rescue nil
         end
@@ -170,7 +170,7 @@ describe Prop do
       end
 
       it "raise Prop::RateLimited when the threshold is exceeded" do
-        Prop.configure(:hello, :threshold => 5, :interval => 10, :description => "Boom!")
+        Prop.configure(:hello, threshold: 5, interval: 10, description: "Boom!")
 
         5.times do
           Prop.throttle!(:hello, nil)
@@ -193,7 +193,7 @@ describe Prop do
 
     describe "when use leaky bucket strategy" do
       before do
-        Prop.configure(:hello, :threshold => 5, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 10, :description => "Boom!")
+        Prop.configure(:hello, threshold: 5, interval: 10, strategy: :leaky_bucket, burst_rate: 10, description: "Boom!")
       end
 
       it "increments counter correctly" do
@@ -246,29 +246,29 @@ describe Prop do
     end
 
     it "support custom increments" do
-      Prop.configure(:hello, :threshold => 100, :interval => 10)
+      Prop.configure(:hello, threshold: 100, interval: 10)
 
       Prop.throttle!(:hello)
       Prop.throttle!(:hello)
 
       assert_equal 2, Prop.query(:hello)
 
-      Prop.throttle!(:hello, nil, :increment => 48)
+      Prop.throttle!(:hello, nil, increment: 48)
 
       assert_equal 50, Prop.query(:hello)
     end
 
     it "raise a RuntimeError when a handle has not been configured" do
       assert_raises(RuntimeError) do
-        Prop.throttle!(:no_such_handle, nil, :threshold => 5, :interval => 10)
+        Prop.throttle!(:no_such_handle, nil, threshold: 5, interval: 10)
       end
     end
   end
 
   describe "different handles with the same interval" do
     before do
-      Prop.configure(:api_requests, :threshold => 100, :interval => 30)
-      Prop.configure(:login_attempts, :threshold => 10, :interval => 30)
+      Prop.configure(:api_requests, threshold: 100, interval: 30)
+      Prop.configure(:login_attempts, threshold: 10, interval: 30)
     end
 
     it "be counted separately" do
@@ -281,7 +281,7 @@ describe Prop do
 
   describe "#configurations" do
     it "returns the configuration" do
-      Prop.configure(:something, :threshold => 100, :interval => 30)
+      Prop.configure(:something, threshold: 100, interval: 30)
       config = Prop.configurations[:something]
       assert_equal 100, config[:threshold]
       assert_equal 30, config[:interval]

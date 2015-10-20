@@ -23,7 +23,7 @@ describe Prop::Middleware do
 
   describe "when the app call results in a raised throttle" do
     before do
-      options = { :handle => "foo", :threshold => 10, :interval => 60, :cache_key => "wibble", :description => "Boom!", :strategy => Prop::IntervalStrategy }
+      options = { handle: "foo", threshold: 10, interval: 60, cache_key: "wibble", description: "Boom!", strategy: Prop::IntervalStrategy }
       @app.expects(:call).with(@env).raises(Prop::RateLimited.new(options))
     end
 
@@ -36,7 +36,7 @@ describe Prop::Middleware do
 
     describe "with a custom error handler" do
       before do
-        @middleware = Prop::Middleware.new(@app, :error_handler => Proc.new { |env, error| "Oops" })
+        @middleware = Prop::Middleware.new(@app, error_handler: Proc.new { |env, error| "Oops" })
       end
 
       it "allow setting a custom error handler" do

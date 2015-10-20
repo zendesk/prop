@@ -14,7 +14,7 @@ describe Prop::Limiter do
 
   describe "IntervalStrategy" do
     before do
-      Prop::Limiter.configure(:something, :threshold => 10, :interval => 10)
+      Prop::Limiter.configure(:something, threshold: 10, interval: 10)
       Prop::IntervalStrategy.stubs(:build).returns(@cache_key)
       Prop.reset(:something)
     end
@@ -93,7 +93,7 @@ describe Prop::Limiter do
           end
 
           it "increments the throttle count by the specified number when provided" do
-            Prop.throttle(:something, nil, :increment => 5)
+            Prop.throttle(:something, nil, increment: 5)
 
             assert_equal 5, Prop.count(:something)
           end
@@ -117,15 +117,15 @@ describe Prop::Limiter do
           :something,
           :key,
           {
-            :threshold => 10,
-            :interval  => 10,
-            :key       => 'key',
-            :strategy  => Prop::IntervalStrategy,
-            :options   => true
+            threshold: 10,
+            interval:  10,
+            key:       'key',
+            strategy: Prop::IntervalStrategy,
+            options:  true
           }
         )
 
-        Prop.throttle!(:something, :key, :options => true)
+        Prop.throttle!(:something, :key, options: true)
       end
 
       describe "when the threshold has been reached" do
@@ -164,7 +164,7 @@ describe Prop::Limiter do
 
   describe "LeakyBucketStrategy" do
     before do
-      Prop::Limiter.configure(:something, :threshold => 10, :interval => 1, :burst_rate => 100, :strategy => :leaky_bucket)
+      Prop::Limiter.configure(:something, threshold: 10, interval: 1, burst_rate: 100, strategy: :leaky_bucket)
       Prop::LeakyBucketStrategy.stubs(:build).returns(@cache_key)
     end
 
@@ -175,7 +175,7 @@ describe Prop::Limiter do
     describe "#throttle" do
       describe "when the bucket is not full" do
         it "increments the count number and saves timestamp in the bucket" do
-          bucket_expected = { :bucket => 1, :last_updated => @start.to_i, :burst_rate => 100 }
+          bucket_expected = { bucket: 1, last_updated: @start.to_i, burst_rate: 100 }
           assert !Prop::Limiter.throttle(:something)
           assert_equal bucket_expected, Prop::Limiter.count(:something)
         end
@@ -187,7 +187,7 @@ describe Prop::Limiter do
         end
 
         it "returns true and doesn't increment the count number in the bucket" do
-          bucket_expected = { :bucket => 0, :last_updated => @start.to_i, :burst_rate => 100 }
+          bucket_expected = { bucket: 0, last_updated: @start.to_i, burst_rate: 100 }
           assert Prop::Limiter.throttle(:something)
           assert_equal bucket_expected, Prop::Limiter.count(:something)
         end
@@ -200,16 +200,16 @@ describe Prop::Limiter do
           :something,
           :key,
           {
-            :threshold  => 10,
-            :interval   => 1,
-            :key        => 'key',
-            :burst_rate => 100,
-            :strategy   => Prop::LeakyBucketStrategy,
-            :options    => true
+            threshold:  10,
+            interval:   1,
+            key:        'key',
+            burst_rate: 100,
+            strategy:   Prop::LeakyBucketStrategy,
+            options:    true
           }
         )
 
-        Prop::Limiter.throttle!(:something, :key, :options => true)
+        Prop::Limiter.throttle!(:something, :key, options: true)
       end
 
       describe "when the bucket is full" do
@@ -226,7 +226,7 @@ describe Prop::Limiter do
 
       describe "when the bucket is not full" do
         it "returns the bucket" do
-          expected_bucket = { :bucket => 1, :last_updated => @start.to_i, :burst_rate => 100 }
+          expected_bucket = { bucket: 1, last_updated: @start.to_i, burst_rate: 100 }
           assert_equal expected_bucket, Prop::Limiter.throttle!(:something)
         end
       end

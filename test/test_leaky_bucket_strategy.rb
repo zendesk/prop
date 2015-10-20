@@ -14,11 +14,11 @@ describe Prop::LeakyBucketStrategy do
 
   describe "#update_bucket" do
     before do
-      @store[@key] = { :bucket => 100, :last_updated => @time.to_i - 10 }
+      @store[@key] = { bucket: 100, last_updated: @time.to_i - 10 }
     end
 
     it "should update the bucket" do
-      bucket_expected = { :bucket => 0, :last_updated => @time.to_i }
+      bucket_expected = { bucket: 0, last_updated: @time.to_i }
       Prop::LeakyBucketStrategy.update_bucket(@key, 1, 10)
       assert_equal bucket_expected, @store[@key]
     end
@@ -27,38 +27,38 @@ describe Prop::LeakyBucketStrategy do
   describe "#counter" do
     describe "when @store[@key] is nil" do
       it "returns the current bucket" do
-        bucket_expected = { :bucket => 0, :last_updated => @time.to_i, :burst_rate => nil }
-        assert_equal bucket_expected, Prop::LeakyBucketStrategy.counter(@key, :interval => 1, :threshold =>10)
+        bucket_expected = { bucket: 0, last_updated: @time.to_i, burst_rate: nil }
+        assert_equal bucket_expected, Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10)
       end
     end
 
     describe "when @store[@key] has an existing value" do
       before do
-        @store[@key] = { :bucket => 100, :last_updated => @time.to_i - 5 }
+        @store[@key] = { bucket: 100, last_updated: @time.to_i - 5 }
       end
 
       it "returns the current bucket" do
-        bucket_expected = { :bucket => 50, :last_updated => @time.to_i, :burst_rate => nil }
-        assert_equal bucket_expected, Prop::LeakyBucketStrategy.counter(@key, :interval => 1, :threshold =>10)
+        bucket_expected = { bucket: 50, last_updated: @time.to_i, burst_rate: nil }
+        assert_equal bucket_expected, Prop::LeakyBucketStrategy.counter(@key, interval: 1, threshold: 10)
       end
     end
   end
 
   describe "#increment" do
      it "increments the bucket" do
-       bucket_expected = { :bucket => 6, :last_updated => @time.to_i }
-       Prop::LeakyBucketStrategy.increment(@key, { :increment => 5 }, :bucket => 1)
+       bucket_expected = { bucket: 6, last_updated: @time.to_i }
+       Prop::LeakyBucketStrategy.increment(@key, { increment: 5 }, bucket: 1)
        assert_equal bucket_expected, Prop::Limiter.reader.call(@key)
      end
   end
 
   describe "#reset" do
     before do
-      @store[@key] = { :bucket => 100, :last_updated => @time.to_i }
+      @store[@key] = { bucket: 100, last_updated: @time.to_i }
     end
 
     it "resets the bucket" do
-      bucket_expected = { :bucket => 0, :last_updated => 0 }
+      bucket_expected = { bucket: 0, last_updated: 0 }
       Prop::LeakyBucketStrategy.reset(@key)
       assert_equal bucket_expected, Prop::Limiter.reader.call(@key)
     end
@@ -66,23 +66,23 @@ describe Prop::LeakyBucketStrategy do
 
   describe "#at_threshold?" do
     it "returns true when bucket is full" do
-      assert Prop::LeakyBucketStrategy.at_threshold?({ :bucket => 100 }, { :burst_rate => 100 })
+      assert Prop::LeakyBucketStrategy.at_threshold?({ bucket: 100 }, { burst_rate: 100 })
     end
 
     it "returns false when bucket is not full" do
-      assert !Prop::LeakyBucketStrategy.at_threshold?({ :bucket => 99 }, { :burst_rate => 100 })
+      assert !Prop::LeakyBucketStrategy.at_threshold?({ bucket: 99 }, { burst_rate: 100 })
     end
   end
 
   describe "#build" do
     it "returns a hexdigested key" do
-      assert_match /prop\/leaky_bucket\/[a-f0-9]+/, Prop::LeakyBucketStrategy.build(:handle => :hello, :key => [ "foo", 2, :bar ])
+      assert_match /prop\/leaky_bucket\/[a-f0-9]+/, Prop::LeakyBucketStrategy.build(handle: :hello, key: [ "foo", 2, :bar ])
     end
   end
 
   describe "#validate_options!" do
     it "raise when burst rate is not valid" do
-      @args = { :threshold => 10, :interval => 10, :strategy => :leaky_bucket, :burst_rate => 'five' }
+      @args = { threshold: 10, interval: 10, strategy: :leaky_bucket, burst_rate: 'five' }
       assert_raises(ArgumentError) { Prop::LeakyBucketStrategy.validate_options!(@args) }
     end
   end

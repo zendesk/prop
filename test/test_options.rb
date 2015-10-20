@@ -3,7 +3,7 @@ require_relative 'helper'
 describe Prop::Options do
   describe "#build" do
     before do
-      @args = { :key => "hello", :params => { :foo => "bif" }, :defaults => { :foo => "bar", :baz => "moo", :threshold => 10, :interval => 5 }}
+      @args = { key: "hello", params: { foo: "bif" }, defaults: { foo: "bar", baz: "moo", threshold: 10, interval: 5 }}
     end
 
     describe "when given valid input" do
@@ -41,7 +41,7 @@ describe Prop::Options do
       end
 
       it "raise when increment is not an positive Integer" do
-        @args[:defaults].merge!(:increment => "one")
+        @args[:defaults].merge!(increment: "one")
         assert_raises(ArgumentError) { Prop::Options.build(@args) }
       end
     end
