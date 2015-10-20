@@ -25,7 +25,7 @@ module Prop
       # Public: Registers a handle for rate limiting
       #
       # handle   - the name of the handle you wish to use in your code, e.g. :login_attempt
-      # defaults - the settings for this handle, e.g. { :threshold => 5, :interval => 5.minutes }
+      # defaults - the settings for this handle, e.g. { threshold: 5, interval: 5.minutes }
       #
       # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
       def configure(handle, defaults)
@@ -88,7 +88,7 @@ module Prop
         options, cache_key = prepare(handle, key, options)
 
         if throttle(handle, key, options)
-          raise Prop::RateLimited.new(options.merge(:cache_key => cache_key, :handle => handle))
+          raise Prop::RateLimited.new(options.merge(cache_key: cache_key, handle: handle))
         end
 
         block_given? ? yield : @strategy.counter(cache_key, options)
@@ -144,11 +144,11 @@ module Prop
         raise RuntimeError.new("No such handle configured: #{handle.inspect}") unless (handles || {}).key?(handle)
 
         defaults  = handles[handle]
-        options   = Prop::Options.build(:key => key, :params => params, :defaults => defaults)
+        options   = Prop::Options.build(key: key, params: params, defaults: defaults)
 
         @strategy = options.fetch(:strategy)
 
-        cache_key = @strategy.build(:key => key, :handle => handle, :interval => options[:interval])
+        cache_key = @strategy.build(key: key, handle: handle, interval: options[:interval])
 
         [ options, cache_key ]
       end

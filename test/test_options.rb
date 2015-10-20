@@ -3,7 +3,7 @@ require_relative 'helper'
 describe Prop::Options do
   describe "#build" do
     before do
-      @args = { :key => "hello", :params => { :foo => "bif" }, :defaults => { :foo => "bar", :baz => "moo", :threshold => 10, :interval => 5 }}
+      @args = { key: "hello", params: { foo: "bif" }, defaults: { foo: "bar", baz: "moo", threshold: 10, interval: 5 }}
     end
 
     describe "when given valid input" do
@@ -12,11 +12,11 @@ describe Prop::Options do
       end
 
       it "support defaults" do
-        assert_equal "moo", @options[:baz]
+        @options[:baz].must_equal "moo"
       end
 
       it "override defaults" do
-        assert_equal "bif", @options[:foo]
+        @options[:foo].must_equal "bif"
       end
     end
 
@@ -33,15 +33,13 @@ describe Prop::Options do
 
       it "raise when not given a key" do
         @args.delete(:key)
-        begin
+        assert_raises KeyError do
           Prop::Options.build(@args)
-          fail "it puke when not given a valid key"
-        rescue
         end
       end
 
       it "raise when increment is not an positive Integer" do
-        @args[:defaults].merge!(:increment => "one")
+        @args[:defaults].merge!(increment: "one")
         assert_raises(ArgumentError) { Prop::Options.build(@args) }
       end
     end

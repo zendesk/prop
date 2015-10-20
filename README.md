@@ -112,7 +112,7 @@ error_handler = Proc.new do |env, error|
   [ 429, headers, [ body ]]
 end
 
-ActionController::Dispatcher.middleware.insert_before(ActionController::ParamsParser, :error_handler => error_handler)
+ActionController::Dispatcher.middleware.insert_before(ActionController::ParamsParser, error_handler: error_handler)
 ```
 
 An alternative to this, is to extend `Prop::Middleware` and override the `render_response(env, error)` method.
@@ -132,7 +132,7 @@ end
 You can chose to override the threshold for a given key:
 
 ```ruby
-Prop.throttle!(:mails_per_hour, mail.from, :threshold => current_account.mail_throttle_threshold)
+Prop.throttle!(:mails_per_hour, mail.from, threshold: current_account.mail_throttle_threshold)
 ```
 
 When the threshold are invoked without argument, the key is nil and as such a scope of its own, i.e. these are equivalent:

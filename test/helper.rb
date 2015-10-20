@@ -1,6 +1,6 @@
 require 'bundler/setup'
 
-require "minitest/autorun"
+require "maxitest/autorun"
 require 'mocha/setup'
 
 require 'time'
