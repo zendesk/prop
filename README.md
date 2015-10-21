@@ -6,8 +6,10 @@ Define thresholds, register usage and finally act on exceptions once thresholds 
 
 Prop supports two limiting strategies:
 
-* Basic strategy (default): Prop will use an interval to define a window of time using simple div arithmetic. This means that it's a worst-case throttle that will allow up to two times the specified requests within the specified interval.
-* Leaky bucket strategy: Prop also supports the [Leaky Bucket](https://en.wikipedia.org/wiki/Leaky_bucket) algorithm, which is similar to the basic strategy but also supports bursts up to a specified threshold.
+* Basic strategy (default): Prop will use an interval to define a window of time using simple div arithmetic. 
+This means that it's a worst-case throttle that will allow up to two times the specified requests within the specified interval.
+* Leaky bucket strategy: Prop also supports the [Leaky Bucket](https://en.wikipedia.org/wiki/Leaky_bucket) algorithm, 
+which is similar to the basic strategy but also supports bursts up to a specified threshold.
 
 To store values, prop needs a cache:
 
@@ -20,7 +22,8 @@ Prop does not expire its used keys, so use memcached or similar, not redis.
 
 ## Setting a Callback
 
-You can define an optional callback that is invoked when a rate limit is reached. In a Rails application you could use such a handler to add notification support:
+You can define an optional callback that is invoked when a rate limit is reached. In a Rails application you 
+could use such a handler to add notification support:
 
 ```ruby
 Prop.before_throttle do |handle, key, threshold, interval|
@@ -74,7 +77,10 @@ Prop.throttle!(:mails_per_hour, [ account.id, mail.from ])
 
 ## Error handling
 
-If the threshold for a given handle and key combination is exceeded, Prop throws a `Prop::RateLimited`. This exception contains a "handle" reference and a "description" if specified during the configuration. The handle allows you to rescue `Prop::RateLimited` and differentiate action depending on the handle. For example, in Rails you can use this in e.g. `ApplicationController`:
+If the threshold for a given handle and key combination is exceeded, Prop throws a `Prop::RateLimited`. 
+This exception contains a "handle" reference and a "description" if specified during the configuration. 
+The handle allows you to rescue `Prop::RateLimited` and differentiate action depending on the handle. 
+For example, in Rails you can use this in e.g. `ApplicationController`:
 
 ```ruby
 rescue_from Prop::RateLimited do |e|
@@ -88,15 +94,22 @@ end
 
 ### Using the Middleware
 
-Prop ships with a built-in Rack middleware that you can use to do all the exception handling. When a `Prop::RateLimited` error is caught, it will build an HTTP [429 Too Many Requests](http://tools.ietf.org/html/draft-nottingham-http-new-status-02#section-4) response and set the following headers:
+Prop ships with a built-in Rack middleware that you can use to do all the exception handling. 
+When a `Prop::RateLimited` error is caught, it will build an HTTP 
+[429 Too Many Requests](http://tools.ietf.org/html/draft-nottingham-http-new-status-02#section-4) 
+response and set the following headers:
 
     Retry-After: 32
     Content-Type: text/plain
     Content-Length: 72
 
-Where `Retry-After` is the number of seconds the client has to wait before retrying this end point. The body of this response is whatever description Prop has configured for the throttle that got violated, or a default string if there's none configured.
+Where `Retry-After` is the number of seconds the client has to wait before retrying this end point. 
+The body of this response is whatever description Prop has configured for the throttle that got violated, 
+or a default string if there's none configured.
 
-If you wish to do manual error messaging in these cases, you can define an error handler in your Prop configuration. Here's how the default error handler looks - you use anything that responds to `.call` and takes the environment and a `RateLimited` instance as argument:
+If you wish to do manual error messaging in these cases, you can define an error handler in your Prop configuration. 
+Here's how the default error handler looks - you use anything that responds to `.call` and 
+takes the environment and a `RateLimited` instance as argument:
 
 ```ruby
 error_handler = Proc.new do |env, error|
@@ -136,7 +149,8 @@ Prop.throttle!(:mails_per_hour)
 Prop.throttle!(:mails_per_hour, nil)
 ```
 
-The default (and smallest possible) increment is 1, you can set that to any integer value using :increment which is handy for building time based throttles:
+The default (and smallest possible) increment is 1, you can set that to any integer value using 
+`:increment` which is handy for building time based throttles:
 
 ```ruby
 Prop.configure(:execute_time, threshold: 10, interval: 1.minute)
@@ -172,7 +186,10 @@ end
 
 ## Using Leaky Bucket Algorithm
 
-You can add two additional configurations: `:strategy` and `:burst_rate` to use the [leaky bucket algorithm](https://en.wikipedia.org/wiki/Leaky_bucket). Prop will handle the details after configured, and you don't have to specify `:strategy` again when using `throttle`, `throttle!` or any other methods.
+You can add two additional configurations: `:strategy` and `:burst_rate` to use the 
+[leaky bucket algorithm](https://en.wikipedia.org/wiki/Leaky_bucket). 
+Prop will handle the details after configured, and you don't have to specify `:strategy` 
+again when using `throttle`, `throttle!` or any other methods.
 
 ```ruby
 Prop.configure(:api_request, strategy: :leaky_bucket, burst_rate: 20, threshold: 5, interval: 1.minute)
@@ -190,4 +207,7 @@ You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+Unless required by applicable law or agreed to in writing, 
+software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+See the License for the specific language governing permissions and limitations under the License.
