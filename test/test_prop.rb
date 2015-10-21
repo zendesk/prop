@@ -25,7 +25,7 @@ describe Prop do
       end
 
       assert_raises(Prop::RateLimited) { Prop.throttle!(:hello_there, 'some key') }
-      Prop.throttle!(:hello_there, 'some key', threshold: 20).must_equal 5
+      Prop.throttle!(:hello_there, 'some key', threshold: 20).must_equal 6
     end
 
     it "create a handle accepts various cache key types" do
@@ -100,20 +100,28 @@ describe Prop do
     describe "when use interval strategy" do
       it "return true once the threshold has been reached" do
         Prop.configure(:hello, threshold: 2, interval: 10)
-        Prop.throttle!(:hello)
-        refute Prop.throttled?(:hello)
-        Prop.throttle!(:hello)
+
+        2.times do
+          refute Prop.throttled?(:hello)
+          refute Prop.throttle(:hello)
+        end
+
         assert Prop.throttled?(:hello)
+        assert Prop.throttle(:hello)
       end
     end
 
     describe "when use leaky bucket strategy" do
-      it "return true once the bucket has been filled" do
+      it "return true once it was throttled" do
         Prop.configure(:hello, threshold: 1, interval: 10, strategy: :leaky_bucket, burst_rate: 2)
-        Prop.throttle!(:hello)
-        refute Prop.throttled?(:hello)
-        Prop.throttle!(:hello)
+
+        2.times do
+          refute Prop.throttled?(:hello)
+          refute Prop.throttle(:hello)
+        end
+
         assert Prop.throttled?(:hello)
+        assert Prop.throttle(:hello)
       end
     end
   end
@@ -156,13 +164,13 @@ describe Prop do
         end
       end
 
-      it "not increment the counter beyond the threshold" do
+      it "increment the counter beyond the threshold" do
         Prop.configure(:hello, threshold: 5, interval: 1)
         10.times do
           Prop.throttle!(:hello) rescue nil
         end
 
-        Prop.query(:hello).must_equal 5
+        Prop.query(:hello).must_equal 10
       end
 
       it "raise Prop::RateLimited when the threshold is exceeded" do
@@ -213,12 +221,12 @@ describe Prop do
         Prop.query(:hello)[:bucket].must_equal 0
       end
 
-      it "not increment the counter beyond the burst rate" do
+      it "increments the counter beyond the burst rate" do
         15.times do
           Prop.throttle!(:hello) rescue nil
         end
 
-        Prop.query(:hello)[:bucket].must_equal 10
+        Prop.query(:hello)[:bucket].must_equal 15
       end
 
       it "raises Prop::RateLimited when the bucket is full" do

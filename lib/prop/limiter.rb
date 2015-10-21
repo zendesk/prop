@@ -66,19 +66,15 @@ module Prop
         return false if disabled?
 
         options, cache_key = prepare(handle, key, options)
-        counter = @strategy.counter(cache_key, options)
+        counter = @strategy.increment(cache_key, options)
 
-        if @strategy.at_threshold?(counter, options)
-          unless before_throttle_callback.nil?
+        if @strategy.compare_threshold?(counter, :>, options)
+          before_throttle_callback &&
             before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
-          end
 
           true
         else
-          @strategy.increment(cache_key, options, counter)
-
           yield if block_given?
-
           false
         end
       end
@@ -102,7 +98,7 @@ module Prop
         block_given? ? yield : @strategy.counter(cache_key, options)
       end
 
-      # Public: Allows to query whether the given handle/key combination is currently throttled
+      # Public: Is the given handle/key combination currently throttled ?
       #
       # handle   - the throttle identifier
       # key      - the associated key
@@ -111,7 +107,7 @@ module Prop
       def throttled?(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
         counter = @strategy.counter(cache_key, options)
-        @strategy.at_threshold?(counter, options)
+        @strategy.compare_threshold?(counter, :>=, options)
       end
 
       # Public: Resets a specific throttle
@@ -153,7 +149,7 @@ module Prop
           raise KeyError.new("No such handle configured: #{handle.inspect}")
         end
 
-        options   = Prop::Options.build(key: key, params: params, defaults: defaults)
+        options = Prop::Options.build(key: key, params: params, defaults: defaults)
 
         @strategy = options.fetch(:strategy)
 

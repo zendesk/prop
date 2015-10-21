@@ -24,9 +24,15 @@ describe Prop::IntervalStrategy do
   end
 
   describe "#increment" do
-    it "increments the bucket" do
-      Prop::IntervalStrategy.increment(@key, { increment: 5 }, 1)
-      Prop::IntervalStrategy.counter(@key, nil).must_equal 6
+    it "increments an empty bucket" do
+      Prop::IntervalStrategy.increment(@key, increment: 5)
+      assert_equal 5, Prop::IntervalStrategy.counter(@key, nil)
+    end
+
+    it "increments a filled bucket" do
+      Prop::IntervalStrategy.increment(@key, increment: 5)
+      Prop::IntervalStrategy.increment(@key, increment: 5)
+      assert_equal 10, Prop::IntervalStrategy.counter(@key, nil)
     end
   end
 
@@ -39,13 +45,15 @@ describe Prop::IntervalStrategy do
     end
   end
 
-  describe "#at_threshold?" do
+  describe "#compare_threshold?" do
     it "returns true when the limit has been reached" do
-      assert Prop::IntervalStrategy.at_threshold?(100, { threshold: 100 })
+      assert Prop::IntervalStrategy.compare_threshold?(100, :>=, { threshold: 100 })
+      assert Prop::IntervalStrategy.compare_threshold?(101, :>, { threshold: 100 })
     end
 
     it "returns false when the limit has not been reached" do
-      refute Prop::IntervalStrategy.at_threshold?(99, { threshold: 100 })
+      refute Prop::IntervalStrategy.compare_threshold?(99, :>=, { threshold: 100 })
+      refute Prop::IntervalStrategy.compare_threshold?(100, :>, { threshold: 100 })
     end
   end
 

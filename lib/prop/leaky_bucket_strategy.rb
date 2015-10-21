@@ -7,21 +7,29 @@ module Prop
   class LeakyBucketStrategy
     class << self
       def counter(cache_key, options)
-        update_bucket(cache_key, options[:interval], options[:threshold]).merge(burst_rate: options[:burst_rate])
+        bucket = Prop::Limiter.cache.read(cache_key) || default_bucket
+        now = Time.now.to_i
+        leak_amount = (now - bucket.fetch(:last_updated)) / options.fetch(:interval) * options.fetch(:threshold)
+
+        bucket[:bucket] = [bucket.fetch(:bucket) - leak_amount, 0].max
+        bucket[:last_updated] = now
+        bucket
       end
 
-      def increment(cache_key, options, counter)
-        increment = options.fetch(:increment, 1)
-        bucket = { bucket: counter[:bucket].to_i + increment, last_updated: Time.now.to_i }
-        Prop::Limiter.cache.write(cache_key, bucket)
+      # WARNING: race condition
+      # this increment is not atomic, so it might miss counts when used frequently
+      def increment(cache_key, options)
+        counter = counter(cache_key, options)
+        counter[:bucket] += options.fetch(:increment, 1)
+        Prop::Limiter.cache.write(cache_key, counter)
       end
 
       def reset(cache_key)
         Prop::Limiter.cache.write(cache_key, default_bucket)
       end
 
-      def at_threshold?(counter, options)
-        counter[:bucket].to_i >= options.fetch(:burst_rate)
+      def compare_threshold?(counter, operator, options)
+        counter.fetch(:bucket).to_i.send operator, options.fetch(:burst_rate)
       end
 
       def build(options)
@@ -52,18 +60,6 @@ module Prop
 
       def default_bucket
         { bucket: 0, last_updated: 0 }
-      end
-
-      def update_bucket(cache_key, interval, leak_rate)
-        bucket = Prop::Limiter.cache.read(cache_key) || default_bucket
-        now = Time.now.to_i
-        leak_amount = (now - bucket[:last_updated]) / interval * leak_rate
-
-        bucket[:bucket] = [bucket[:bucket] - leak_amount, 0].max
-        bucket[:last_updated] = now
-
-        Prop::Limiter.cache.write(cache_key, bucket)
-        bucket
       end
     end
   end

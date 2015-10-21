@@ -9,17 +9,18 @@ module Prop
         Prop::Limiter.cache.read(cache_key).to_i
       end
 
-      def increment(cache_key, options, counter)
+      def increment(cache_key, options)
         increment = options.fetch(:increment, 1)
-        Prop::Limiter.cache.write(cache_key, counter + increment)
+        cache = Prop::Limiter.cache
+        cache.increment(cache_key, increment) || cache.write(cache_key, increment) # WARNING: potential race condition
       end
 
       def reset(cache_key)
         Prop::Limiter.cache.write(cache_key, 0)
       end
 
-      def at_threshold?(counter, options)
-        counter >= options.fetch(:threshold)
+      def compare_threshold?(counter, operator, options)
+        counter.send operator, options.fetch(:threshold)
       end
 
       # Builds the expiring cache key
