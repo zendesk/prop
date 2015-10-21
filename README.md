@@ -43,9 +43,6 @@ Prop.configure(:mails_per_hour, threshold: 100, interval: 1.hour, description: "
 # Throws Prop::RateLimitExceededError if the threshold/interval has been reached
 Prop.throttle!(:mails_per_hour)
 
-# Prop can be used to guard a block of code
-Prop.throttle!(:expensive_request) { calculator.something_very_hard }
-
 # Returns true if the threshold/interval has been reached
 Prop.throttled?(:mails_per_hour)
 

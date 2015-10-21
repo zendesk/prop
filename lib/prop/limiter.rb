@@ -59,10 +59,10 @@ module Prop
       # handle  - the registered handle associated with the action
       # key     - a custom request specific key, e.g. [ account.id, "download", request.remote_ip ]
       # options - request specific overrides to the defaults configured for this handle
-      # (optional) a block of code that this throttle is guarding
       #
       # Returns true if the threshold for this handle has been reached, else returns false
       def throttle(handle, key = nil, options = {})
+        raise ArgumentError, "blocks are no longer supported" if block_given?
         return false if disabled?
 
         options, cache_key = prepare(handle, key, options)
@@ -77,8 +77,6 @@ module Prop
         else
           @strategy.increment(cache_key, options, counter)
 
-          yield if block_given?
-
           false
         end
       end
@@ -88,18 +86,18 @@ module Prop
       # handle  - the registered handle associated with the action
       # key     - a custom request specific key, e.g. [ account.id, "download", request.remote_ip ]
       # options - request specific overrides to the defaults configured for this handle
-      # (optional) a block of code that this throttle is guarding
       #
       # Raises Prop::RateLimited if the threshold for this handle has been reached
-      # Returns the value of the block if given a such, otherwise the current count of the throttle
+      # Returns the current count of the throttle
       def throttle!(handle, key = nil, options = {})
+        raise ArgumentError, "blocks are no longer supported" if block_given?
         options, cache_key = prepare(handle, key, options)
 
         if throttle(handle, key, options)
           raise Prop::RateLimited.new(options.merge(cache_key: cache_key, handle: handle))
         end
 
-        block_given? ? yield : @strategy.counter(cache_key, options)
+        @strategy.counter(cache_key, options)
       end
 
       # Public: Allows to query whether the given handle/key combination is currently throttled
