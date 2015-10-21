@@ -19,6 +19,28 @@ describe Prop::Limiter do
         Prop::Limiter.disabled { Prop.throttle(:something) }.must_equal false
       end
 
+      it "blows up when using deprecated block feature" do
+        assert_raises ArgumentError do
+          Prop.throttle(:something) {  }
+        end
+      end
+
+      it "returns false" do
+        refute Prop.throttle(:something)
+      end
+
+      it "increments the throttle count by one" do
+        Prop.throttle(:something)
+
+        Prop.count(:something).must_equal 1
+      end
+
+      it "increments the throttle count by the specified number when provided" do
+        Prop.throttle(:something, nil, increment: 5)
+
+        Prop.count(:something).must_equal 5
+      end
+
       describe "and the threshold has been reached" do
         before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(true) }
 
@@ -30,12 +52,6 @@ describe Prop::Limiter do
           Prop.throttle(:something)
 
           Prop.count(:something).must_equal 0
-        end
-
-        it "does not execute a block" do
-          test_block_executed = false
-          Prop.throttle(:something) { test_block_executed = true }
-          refute test_block_executed
         end
 
         it "invokes before_throttle callback" do
@@ -52,32 +68,6 @@ describe Prop::Limiter do
           @key.must_equal [:extra]
           @threshold.must_equal 10
           @interval.must_equal 10
-        end
-      end
-
-      describe "and the threshold has not been reached" do
-        before { Prop::IntervalStrategy.stubs(:at_threshold?).returns(false) }
-
-        it "returns false" do
-          refute Prop.throttle(:something)
-        end
-
-        it "increments the throttle count by one" do
-          Prop.throttle(:something)
-
-          Prop.count(:something).must_equal 1
-        end
-
-        it "increments the throttle count by the specified number when provided" do
-          Prop.throttle(:something, nil, increment: 5)
-
-          Prop.count(:something).must_equal 5
-        end
-
-        it "executes a block" do
-          test_block_executed = false
-          Prop.throttle(:something) { test_block_executed = true }
-          assert test_block_executed
         end
       end
     end
@@ -99,30 +89,19 @@ describe Prop::Limiter do
         Prop.throttle!(:something, :key, options: true)
       end
 
-      describe "when the threshold has been reached" do
-        before { Prop::Limiter.stubs(:throttle).returns(true) }
-
-        it "raises a rate-limited exception" do
-          assert_raises(Prop::RateLimited) { Prop.throttle!(:something) }
-        end
-
-        it "does not executes a block" do
-          test_block_executed = false
-          assert_raises Prop::RateLimited do
-            Prop.throttle!(:something) { test_block_executed = true }
-          end
-          refute test_block_executed
+      it "blows up when using deprecated block feature" do
+        assert_raises ArgumentError do
+          Prop.throttle(:something) {  }
         end
       end
 
-      describe "when the threshold has not been reached" do
-        it "returns the counter value" do
-          Prop.throttle!(:something).must_equal Prop.count(:something)
-        end
+      it "returns the counter value" do
+        Prop.throttle!(:something).must_equal Prop.count(:something)
+      end
 
-        it "returns the return value of a block" do
-          Prop.throttle!(:something) { 'block_value' }.must_equal 'block_value'
-        end
+      it "raises a rate-limited exception when the threshold has been reached" do
+        Prop::Limiter.stubs(:throttle).returns(true)
+        assert_raises(Prop::RateLimited) { Prop.throttle!(:something) }
       end
     end
   end
