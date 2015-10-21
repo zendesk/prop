@@ -1,7 +1,7 @@
 
 # Prop [![Build Status](https://travis-ci.org/zendesk/prop.png)](https://travis-ci.org/zendesk/prop)
 
-A gem to rate limit requests/actions of any kind.<br/> 
+A gem to rate limit requests/actions of any kind.<br/>
 Define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
 
 Prop supports two limiting strategies:
@@ -13,16 +13,10 @@ To store values, prop needs a cache:
 
 ```ruby
 # config/initializers/prop.rb
-Prop.read do |key|
-  Rails.cache.read(key)
-end
-
-Prop.write do |key, value|
-  Rails.cache.write(key, value)
-end
+Prop.cache = Rails.cache # needs read/write/increment methods
 ```
 
-Prop does not expire its used keys, so use memcached or similar, not redis.  
+Prop does not expire its used keys, so use memcached or similar, not redis.
 
 ## Setting a Callback
 
@@ -173,7 +167,7 @@ rescue Prop::RateLimited => e
   when :auth
     raise AuthFailure
   ...
-end 
+end
 ```
 
 ## Using Leaky Bucket Algorithm
@@ -184,7 +178,7 @@ You can add two additional configurations: `:strategy` and `:burst_rate` to use 
 Prop.configure(:api_request, strategy: :leaky_bucket, burst_rate: 20, threshold: 5, interval: 1.minute)
 ```
 
-* `:threshold` value here would be the "leak rate" of leaky bucket algorithm. 
+* `:threshold` value here would be the "leak rate" of leaky bucket algorithm.
 
 
 ## License

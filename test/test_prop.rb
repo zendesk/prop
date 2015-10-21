@@ -3,21 +3,17 @@ require_relative 'helper'
 # Integration level tests
 describe Prop do
   before do
-    store = {}
-    Prop.read  { |key| store[key] }
-    Prop.write { |key, value| store[key] = value }
-
-    @start = Time.now
-    Time.stubs(:now).returns(@start)
+    setup_fake_store
+    freeze_time
   end
 
   describe "#defaults" do
     it "raise errors on invalid configuation" do
-      assert_raises(RuntimeError) do
+      assert_raises(ArgumentError) do
         Prop.configure :hello_there, threshold: 20, interval: 'hello'
       end
 
-      assert_raises(RuntimeError) do
+      assert_raises(ArgumentError) do
         Prop.configure :hello_there, threshold: 'wibble', interval: 100
       end
     end
@@ -153,7 +149,7 @@ describe Prop do
           Prop.throttle!(:hello, nil, threshold: 10, interval: 10).must_equal i + 1
         end
 
-        Time.stubs(:now).returns(@start + 20)
+        Time.stubs(:now).returns(@time + 20)
 
         3.times do |i|
           Prop.throttle!(:hello, nil, threshold: 10, interval: 10).must_equal i + 1
@@ -207,13 +203,13 @@ describe Prop do
           Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
 
-        Time.stubs(:now).returns(@start + 10)
+        Time.stubs(:now).returns(@time + 10)
 
         10.times do |i|
           Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
 
-        Time.stubs(:now).returns(@start + 30)
+        Time.stubs(:now).returns(@time + 30)
         Prop.query(:hello)[:bucket].must_equal 0
       end
 
@@ -259,7 +255,7 @@ describe Prop do
     end
 
     it "raise a RuntimeError when a handle has not been configured" do
-      assert_raises(RuntimeError) do
+      assert_raises KeyError do
         Prop.throttle!(:no_such_handle, nil, threshold: 5, interval: 10)
       end
     end

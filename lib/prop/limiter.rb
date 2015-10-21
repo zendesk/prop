@@ -8,14 +8,22 @@ module Prop
   class Limiter
 
     class << self
-      attr_accessor :handles, :reader, :writer, :before_throttle_callback
+      attr_accessor :handles, :before_throttle_callback, :cache
 
       def read(&blk)
-        self.reader = blk
+        raise "Use .cache = "
       end
 
       def write(&blk)
-        self.writer = blk
+        raise "Use .cache = "
+      end
+
+      def cache=(cache)
+        [:read, :write, :increment].each do |method|
+          next if cache.respond_to?(method)
+          raise ArgumentError, "Cache needs to respond to #{method}"
+        end
+        @cache = cache
       end
 
       def before_throttle(&blk)
@@ -29,8 +37,8 @@ module Prop
       #
       # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
       def configure(handle, defaults)
-        raise RuntimeError.new("Invalid threshold setting") unless defaults[:threshold].to_i > 0
-        raise RuntimeError.new("Invalid interval setting")  unless defaults[:interval].to_i > 0
+        raise ArgumentError.new("Invalid threshold setting") unless defaults[:threshold].to_i > 0
+        raise ArgumentError.new("Invalid interval setting")  unless defaults[:interval].to_i > 0
 
         self.handles ||= {}
         self.handles[handle] = defaults
@@ -55,23 +63,23 @@ module Prop
       #
       # Returns true if the threshold for this handle has been reached, else returns false
       def throttle(handle, key = nil, options = {})
+        return false if disabled?
+
         options, cache_key = prepare(handle, key, options)
         counter = @strategy.counter(cache_key, options)
 
-        unless disabled?
-          if @strategy.at_threshold?(counter, options)
-            unless before_throttle_callback.nil?
-              before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
-            end
-
-            true
-          else
-            @strategy.increment(cache_key, options, counter)
-
-            yield if block_given?
-
-            false
+        if @strategy.at_threshold?(counter, options)
+          unless before_throttle_callback.nil?
+            before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
           end
+
+          true
+        else
+          @strategy.increment(cache_key, options, counter)
+
+          yield if block_given?
+
+          false
         end
       end
 
@@ -82,7 +90,7 @@ module Prop
       # options - request specific overrides to the defaults configured for this handle
       # (optional) a block of code that this throttle is guarding
       #
-      # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
+      # Raises Prop::RateLimited if the threshold for this handle has been reached
       # Returns the value of the block if given a such, otherwise the current count of the throttle
       def throttle!(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
@@ -113,7 +121,7 @@ module Prop
       #
       # Returns nothing
       def reset(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
+        _options, cache_key = prepare(handle, key, options)
         @strategy.reset(cache_key)
       end
 
@@ -141,9 +149,10 @@ module Prop
       end
 
       def prepare(handle, key, params)
-        raise RuntimeError.new("No such handle configured: #{handle.inspect}") unless (handles || {}).key?(handle)
+        unless defaults = handles[handle]
+          raise KeyError.new("No such handle configured: #{handle.inspect}")
+        end
 
-        defaults  = handles[handle]
         options   = Prop::Options.build(key: key, params: params, defaults: defaults)
 
         @strategy = options.fetch(:strategy)
