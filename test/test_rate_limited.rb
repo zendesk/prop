@@ -24,7 +24,7 @@ describe Prop::RateLimited do
       @error.handle.must_equal :foo
       @error.cache_key.must_equal "wibble"
       @error.description.must_equal "Boom!"
-      @error.message.must_equal "foo threshold of 10 tries per 60s exceeded for key 'nil', hash wibble"
+      @error.message.must_equal "foo threshold of 10 tries per 60s exceeded for key nil, hash wibble"
       @error.retry_after.must_equal 20
     end
   end
