@@ -12,7 +12,7 @@ module Prop
       def increment(cache_key, options)
         increment = options.fetch(:increment, 1)
         cache = Prop::Limiter.cache
-        cache.increment(cache_key, increment) || cache.write(cache_key, increment) # WARNING: potential race condition
+        cache.increment(cache_key, increment) || (cache.write(cache_key, increment, raw: true) && increment) # WARNING: potential race condition
       end
 
       def reset(cache_key)
