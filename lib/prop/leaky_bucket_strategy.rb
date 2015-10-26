@@ -22,6 +22,7 @@ module Prop
         counter = counter(cache_key, options)
         counter[:bucket] += options.fetch(:increment, 1)
         Prop::Limiter.cache.write(cache_key, counter)
+        counter
       end
 
       def reset(cache_key)

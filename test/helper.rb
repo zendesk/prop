@@ -5,29 +5,12 @@ require 'mocha/setup'
 
 require 'time'
 require 'prop'
-
-class MemoryStore
-  def initialize
-    @store = {}
-  end
-
-  def read(key)
-    @store[key]
-  end
-
-  def write(key, value)
-    @store[key] = value
-  end
-
-  # simulate memcached increment behavior
-  def increment(key, value)
-    @store[key] += value if @store[key]
-  end
-end
+require 'active_support/cache'
+require 'active_support/cache/memory_store'
 
 Minitest::Test.class_eval do
   def setup_fake_store
-    Prop.cache = MemoryStore.new
+    Prop.cache = ActiveSupport::Cache::MemoryStore.new
   end
 
   def freeze_time(time = Time.now)

@@ -10,6 +10,7 @@ Gem::Specification.new "prop", "1.2.0" do |s|
   s.add_development_dependency('rake')
   s.add_development_dependency('maxitest')
   s.add_development_dependency('mocha')
+  s.add_development_dependency('activesupport')
 
   s.files = `git ls-files lib LICENSE README.md`.split("\n")
 end
