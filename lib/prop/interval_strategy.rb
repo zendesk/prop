@@ -38,7 +38,7 @@ module Prop
       def threshold_reached(options)
         threshold = options.fetch(:threshold)
 
-        "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s exceeded for key '#{options[:key].inspect}', hash #{options[:cache_key]}"
+        "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s exceeded for key #{options[:key].inspect}, hash #{options[:cache_key]}"
       end
 
       def validate_options!(options)

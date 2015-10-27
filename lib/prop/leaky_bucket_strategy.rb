@@ -46,7 +46,7 @@ module Prop
         burst_rate = options.fetch(:burst_rate)
         threshold  = options.fetch(:threshold)
 
-        "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s and burst rate #{burst_rate} tries exceeded for key '#{options[:key].inspect}', hash #{options[:cache_key]}"
+        "#{options[:handle]} threshold of #{threshold} tries per #{options[:interval]}s and burst rate #{burst_rate} tries exceeded for key #{options[:key].inspect}, hash #{options[:cache_key]}"
       end
 
       def validate_options!(options)
