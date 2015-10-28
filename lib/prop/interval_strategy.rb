@@ -32,7 +32,7 @@ module Prop
         window    = (Time.now.to_i / interval)
         cache_key = Prop::Key.normalize([ handle, key, window ])
 
-        "prop/#{Digest::MD5.hexdigest(cache_key)}"
+        "prop/v2/#{Digest::MD5.hexdigest(cache_key)}"
       end
 
       def threshold_reached(options)
