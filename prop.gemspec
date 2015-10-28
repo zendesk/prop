@@ -1,4 +1,7 @@
-Gem::Specification.new "prop", "2.0.0" do |s|
+$LOAD_PATH.unshift "lib"
+require "prop"
+
+Gem::Specification.new "prop", Prop::VERSION do |s|
   s.license = "Apache License Version 2.0"
 
   s.summary = "Gem for implementing rate limits."
