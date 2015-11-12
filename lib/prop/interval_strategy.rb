@@ -11,12 +11,13 @@ module Prop
 
       def increment(cache_key, options)
         increment = options.fetch(:increment, 1)
+        raise ArgumentError, "Increment must be a Fixnum, was #{increment.class}" unless increment.is_a?(Fixnum)
         cache = Prop::Limiter.cache
         cache.increment(cache_key, increment) || (cache.write(cache_key, increment, raw: true) && increment) # WARNING: potential race condition
       end
 
       def reset(cache_key)
-        Prop::Limiter.cache.write(cache_key, 0)
+        Prop::Limiter.cache.write(cache_key, 0, raw: true)
       end
 
       def compare_threshold?(counter, operator, options)
