@@ -16,7 +16,7 @@ module Prop
       end
 
       def reset(cache_key)
-        Prop::Limiter.cache.write(cache_key, 0)
+        Prop::Limiter.cache.write(cache_key, 0, raw: true)
       end
 
       def compare_threshold?(counter, operator, options)
