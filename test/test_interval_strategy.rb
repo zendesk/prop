@@ -34,6 +34,12 @@ describe Prop::IntervalStrategy do
       Prop::IntervalStrategy.increment(@key, increment: 5)
       assert_equal 10, Prop::IntervalStrategy.counter(@key, nil)
     end
+
+    it "does not write non-integers" do
+      assert_raises ArgumentError do
+        Prop::IntervalStrategy.increment(@key, increment: "WHOOPS")
+      end
+    end
   end
 
   describe "#reset" do
