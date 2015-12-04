@@ -21,7 +21,7 @@ module Prop
       end
 
       def compare_threshold?(counter, operator, options)
-        return false unless counter.respond_to? operator
+        return false unless counter
         counter.send operator, options.fetch(:threshold)
       end
 

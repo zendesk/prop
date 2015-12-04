@@ -61,6 +61,11 @@ describe Prop::IntervalStrategy do
       refute Prop::IntervalStrategy.compare_threshold?(99, :>=, { threshold: 100 })
       refute Prop::IntervalStrategy.compare_threshold?(100, :>, { threshold: 100 })
     end
+
+    it "returns false when the counter fails to increment" do
+      refute Prop::IntervalStrategy.compare_threshold?(false, :>, { threshold: 100 })
+      refute Prop::IntervalStrategy.compare_threshold?(nil, :>, { threshold: 100 })
+    end
   end
 
   describe "#build" do
