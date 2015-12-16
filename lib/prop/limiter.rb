@@ -23,6 +23,14 @@ module Prop
           next if cache.respond_to?(method)
           raise ArgumentError, "Cache needs to respond to #{method}"
         end
+
+        # https://github.com/petergoldstein/dalli/pull/481
+        if defined?(ActiveSupport::Cache::DalliStore) &&
+            cache.is_a?(ActiveSupport::Cache::DalliStore) &&
+            Gem::Version.new(Dalli::VERSION) <= Gem::Version.new("2.7.4")
+          raise "Upgrade to dalli 2.7.5+ to use prop v2, it fixes a local_cache vs increment bug"
+        end
+
         @cache = cache
       end
 
