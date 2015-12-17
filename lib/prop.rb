@@ -2,7 +2,7 @@ require "prop/limiter"
 require "forwardable"
 
 module Prop
-  VERSION = "2.0.3"
+  VERSION = "2.0.4"
 
   # Short hand for accessing Prop::Limiter methods
   class << self
