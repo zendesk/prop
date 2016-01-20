@@ -2,6 +2,18 @@ require_relative 'helper'
 
 # Integration level tests
 describe Prop do
+  def self.with_each_strategy
+    [{}, {strategy: :leaky_bucket, burst_rate: 2}].each do |options|
+      describe "with #{options[:strategy] || :interval} strategy" do
+        yield options
+      end
+    end
+  end
+
+  def count(counter)
+    counter.is_a?(Hash) ? counter[:bucket] : counter
+  end
+
   before do
     setup_fake_store
     freeze_time
@@ -40,20 +52,15 @@ describe Prop do
   end
 
   describe "#disable" do
-    before do
-      Prop.configure :hello, threshold: 10, interval: 10
-    end
-
-    it "not increase the throttle" do
-      Prop.throttle!(:hello).must_equal 1
-      Prop.throttle!(:hello).must_equal 2
-      Prop.disabled do
-        Prop.throttle!(:hello).must_equal 2
-        Prop.throttle!(:hello).must_equal 2
-        assert Prop::Limiter.send(:disabled?)
+    with_each_strategy do |options|
+      it "does not increase the throttle" do
+        Prop.configure :hello, options.merge(threshold: 2, interval: 10)
+        count(Prop.throttle!(:hello)).must_equal 1
+        Prop.disabled do
+          count(Prop.throttle!(:hello)).must_equal 0
+        end
+        count(Prop.throttle!(:hello)).must_equal 2
       end
-      refute Prop::Limiter.send(:disabled?)
-      Prop.throttle!(:hello).must_equal 3
     end
   end
 
@@ -97,24 +104,13 @@ describe Prop do
   end
 
   describe "#throttled?" do
-    describe "when use interval strategy" do
-      it "return true once the threshold has been reached" do
-        Prop.configure(:hello, threshold: 2, interval: 10)
-
-        2.times do
-          refute Prop.throttled?(:hello)
-          refute Prop.throttle(:hello)
-        end
-
-        assert Prop.throttled?(:hello)
-        assert Prop.throttle(:hello)
+    with_each_strategy do |options|
+      before do
+        Prop.configure(:hello, options.merge(threshold: 2, interval: 10))
+        Prop.configure(:world, options.merge(threshold: 2, interval: 10))
       end
-    end
 
-    describe "when use leaky bucket strategy" do
       it "return true once it was throttled" do
-        Prop.configure(:hello, threshold: 1, interval: 10, strategy: :leaky_bucket, burst_rate: 2)
-
         2.times do
           refute Prop.throttled?(:hello)
           refute Prop.throttle(:hello)
@@ -123,6 +119,13 @@ describe Prop do
         assert Prop.throttled?(:hello)
         assert Prop.throttle(:hello)
       end
+
+      it "counts different handles separately" do
+          user_id = 42
+          2.times { Prop.throttle!(:hello, user_id) }
+          assert Prop.throttled?(:hello, user_id)
+          refute Prop.throttled?(:world, user_id)
+        end
     end
   end
 
@@ -133,12 +136,12 @@ describe Prop do
       Prop.throttle!(:hello)
     end
 
-    it "be aliased by #count" do
-      2.must_equal Prop.count(:hello)
+    it "be aliased by #query" do
+      Prop.query(:hello).must_equal 2
     end
 
     it "return the number of hits on a throttle" do
-      2.must_equal Prop.query(:hello)
+      Prop.count(:hello).must_equal 2
     end
   end
 
@@ -192,6 +195,12 @@ describe Prop do
         e.message.must_include "5 tries per 10s exceeded for key"
         e.description.must_equal "Boom!"
         assert e.retry_after
+      end
+
+      it "support custom increments" do
+        Prop.configure(:hello, threshold: 100, interval: 10)
+        Prop.throttle!(:hello, nil, increment: 48)
+        Prop.query(:hello).must_equal 48
       end
     end
 
@@ -247,39 +256,18 @@ describe Prop do
         e.description.must_equal "Boom!"
         assert e.retry_after
       end
-    end
 
-    it "support custom increments" do
-      Prop.configure(:hello, threshold: 100, interval: 10)
-
-      Prop.throttle!(:hello)
-      Prop.throttle!(:hello)
-
-      Prop.query(:hello).must_equal 2
-
-      Prop.throttle!(:hello, nil, increment: 48)
-
-      Prop.query(:hello).must_equal 50
+      it "support custom increments" do
+        Prop.configure(:hello, threshold: 100, interval: 10)
+        Prop.throttle!(:hello, nil, increment: 48)
+        Prop.query(:hello).must_equal 48
+      end
     end
 
     it "raise a RuntimeError when a handle has not been configured" do
       assert_raises KeyError do
         Prop.throttle!(:no_such_handle, nil, threshold: 5, interval: 10)
       end
-    end
-  end
-
-  describe "different handles with the same interval" do
-    before do
-      Prop.configure(:api_requests, threshold: 100, interval: 30)
-      Prop.configure(:login_attempts, threshold: 10, interval: 30)
-    end
-
-    it "be counted separately" do
-      user_id = 42
-      Prop.throttle!(:api_requests, user_id)
-      Prop.count(:api_requests, user_id).must_equal 1
-      Prop.count(:login_attempts, user_id).must_equal 0
     end
   end
 
