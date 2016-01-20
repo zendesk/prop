@@ -138,7 +138,7 @@ module Prop
 
       def _throttle(handle, key, options)
         options, cache_key = prepare(handle, key, options)
-        return [false, @strategy.counter(cache_key, options)] if disabled?
+        return [false, @strategy.zero_counter] if disabled?
 
         counter = @strategy.increment(cache_key, options)
 

@@ -7,7 +7,7 @@ module Prop
   class LeakyBucketStrategy
     class << self
       def counter(cache_key, options)
-        bucket = Prop::Limiter.cache.read(cache_key) || default_bucket
+        bucket = Prop::Limiter.cache.read(cache_key) || zero_counter
         now = Time.now.to_i
         leak_amount = (now - bucket.fetch(:last_updated)) / options.fetch(:interval) * options.fetch(:threshold)
 
@@ -26,7 +26,7 @@ module Prop
       end
 
       def reset(cache_key)
-        Prop::Limiter.cache.write(cache_key, default_bucket)
+        Prop::Limiter.cache.write(cache_key, zero_counter)
       end
 
       def compare_threshold?(counter, operator, options)
@@ -53,13 +53,11 @@ module Prop
         Prop::IntervalStrategy.validate_options!(options)
 
         if !options[:burst_rate].is_a?(Fixnum) || options[:burst_rate] < options[:threshold]
-          raise ArgumentError.new(":burst_rate must be an Integer and larger than :threshold")
+          raise ArgumentError.new(":burst_rate must be an Integer and not less than :threshold")
         end
       end
 
-      private
-
-      def default_bucket
+      def zero_counter
         { bucket: 0, last_updated: 0 }
       end
     end

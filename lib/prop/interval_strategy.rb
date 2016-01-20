@@ -5,6 +5,10 @@ require 'prop/key'
 module Prop
   class IntervalStrategy
     class << self
+      def zero_counter
+        0
+      end
+
       def counter(cache_key, options)
         Prop::Limiter.cache.read(cache_key).to_i
       end
@@ -17,7 +21,7 @@ module Prop
       end
 
       def reset(cache_key)
-        Prop::Limiter.cache.write(cache_key, 0, raw: true)
+        Prop::Limiter.cache.write(cache_key, zero_counter, raw: true)
       end
 
       def compare_threshold?(counter, operator, options)

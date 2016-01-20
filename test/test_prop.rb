@@ -2,6 +2,18 @@ require_relative 'helper'
 
 # Integration level tests
 describe Prop do
+  def self.with_each_strategy
+    [{}, {strategy: :leaky_bucket, burst_rate: 2}].each do |options|
+      describe "with #{options[:strategy] || :interval} strategy" do
+        yield options
+      end
+    end
+  end
+
+  def count(counter)
+    counter.is_a?(Hash) ? counter[:bucket] : counter
+  end
+
   before do
     setup_fake_store
     freeze_time
@@ -40,20 +52,15 @@ describe Prop do
   end
 
   describe "#disable" do
-    before do
-      Prop.configure :hello, threshold: 10, interval: 10
-    end
-
-    it "not increase the throttle" do
-      Prop.throttle!(:hello).must_equal 1
-      Prop.throttle!(:hello).must_equal 2
-      Prop.disabled do
-        Prop.throttle!(:hello).must_equal 2
-        Prop.throttle!(:hello).must_equal 2
-        assert Prop::Limiter.send(:disabled?)
+    with_each_strategy do |options|
+      it "does not increase the throttle" do
+        Prop.configure :hello, options.merge(threshold: 2, interval: 10)
+        count(Prop.throttle!(:hello)).must_equal 1
+        Prop.disabled do
+          count(Prop.throttle!(:hello)).must_equal 0
+        end
+        count(Prop.throttle!(:hello)).must_equal 2
       end
-      refute Prop::Limiter.send(:disabled?)
-      Prop.throttle!(:hello).must_equal 3
     end
   end
 
@@ -97,30 +104,28 @@ describe Prop do
   end
 
   describe "#throttled?" do
-    [{}, {strategy: :leaky_bucket, burst_rate: 2}].each do |options|
-      describe "with #{options[:strategy] || :interval} strategy" do
-        before do
-          Prop.configure(:hello, options.merge(threshold: 2, interval: 10))
-          Prop.configure(:world, options.merge(threshold: 2, interval: 10))
+    with_each_strategy do |options|
+      before do
+        Prop.configure(:hello, options.merge(threshold: 2, interval: 10))
+        Prop.configure(:world, options.merge(threshold: 2, interval: 10))
+      end
+
+      it "return true once it was throttled" do
+        2.times do
+          refute Prop.throttled?(:hello)
+          refute Prop.throttle(:hello)
         end
 
-        it "return true once it was throttled" do
-          2.times do
-            refute Prop.throttled?(:hello)
-            refute Prop.throttle(:hello)
-          end
+        assert Prop.throttled?(:hello)
+        assert Prop.throttle(:hello)
+      end
 
-          assert Prop.throttled?(:hello)
-          assert Prop.throttle(:hello)
-        end
-
-        it "counts different handles separately" do
+      it "counts different handles separately" do
           user_id = 42
           2.times { Prop.throttle!(:hello, user_id) }
           assert Prop.throttled?(:hello, user_id)
           refute Prop.throttled?(:world, user_id)
         end
-      end
     end
   end
 
