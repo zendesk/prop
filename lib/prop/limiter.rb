@@ -71,7 +71,8 @@ module Prop
       #
       # Returns true if the threshold for this handle has been reached, else returns false
       def throttle(handle, key = nil, options = {}, &block)
-        _throttle(handle, key, options, &block).first
+        options, cache_key = prepare(handle, key, options)
+        _throttle(handle, key, cache_key, options, &block).first
       end
 
       # Public: Records a single action for the given handle/key combination.
@@ -85,10 +86,14 @@ module Prop
       # Returns the value of the block if given a such, otherwise the current count of the throttle
       def throttle!(handle, key = nil, options = {}, &block)
         options, cache_key = prepare(handle, key, options)
-        throttled, counter = _throttle(handle, key, options, &block)
+        throttled, counter = _throttle(handle, key, cache_key, options, &block)
 
         if throttled
-          raise Prop::RateLimited.new(options.merge(cache_key: cache_key, handle: handle))
+          raise Prop::RateLimited.new(options.merge(
+            cache_key: cache_key,
+            handle: handle,
+            first_throttled: (throttled == :first_throttled)
+          ))
         end
 
         block_given? ? yield : counter
@@ -136,8 +141,7 @@ module Prop
 
       private
 
-      def _throttle(handle, key, options)
-        options, cache_key = prepare(handle, key, options)
+      def _throttle(handle, key, cache_key, options)
         return [false, @strategy.zero_counter] if disabled?
 
         counter = @strategy.increment(cache_key, options)
@@ -145,7 +149,14 @@ module Prop
         if @strategy.compare_threshold?(counter, :>, options)
           before_throttle_callback &&
             before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
-          [true, counter]
+
+          result = if options[:first_throttled] && @strategy.first_throttled?(counter, options)
+            :first_throttled
+          else
+            true
+          end
+
+          [result, counter]
         else
           yield if block_given?
           [false, counter]

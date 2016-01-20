@@ -55,6 +55,10 @@ module Prop
         if !options[:burst_rate].is_a?(Fixnum) || options[:burst_rate] < options[:threshold]
           raise ArgumentError.new(":burst_rate must be an Integer and not less than :threshold")
         end
+
+        if options[:first_throttled]
+          raise ArgumentError.new(":first_throttled is not supported")
+        end
       end
 
       def zero_counter

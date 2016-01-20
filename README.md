@@ -184,6 +184,33 @@ rescue Prop::RateLimited => e
 end
 ```
 
+## First throttled
+
+You can opt to be notified when the throttle is breached for the first time.<br/>
+This can be used to send notifications on breaches but prevent spam on multiple throttle breaches.
+
+```Ruby
+Prop.configure(:mails_per_hour, threshold: 100, interval: 1.hour, first_throttled: true)
+
+throttled = Prop.throttle(:mails_per_hour, user.id, increment: 60)
+if throttled
+  if throttled == :first_throttled
+    ApplicationMailer.spammer_warning(user).deliver_now
+  end
+  Rails.logger.warn("Not sending emails")
+else
+  send_emails
+end
+
+# return values of throttle are: false, :first_throttled, true
+
+Prop.first_throttled(:mails_per_hour, 1, increment: 60) # -> false
+Prop.first_throttled(:mails_per_hour, 1, increment: 60) # -> :first_throttled
+Prop.first_throttled(:mails_per_hour, 1, increment: 60) # -> true
+
+# can also be accesses on `Prop::RateLimited` exceptions as `.first_throttled` 
+```
+
 ## Using Leaky Bucket Algorithm
 
 You can add two additional configurations: `:strategy` and `:burst_rate` to use the 

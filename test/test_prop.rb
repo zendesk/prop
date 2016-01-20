@@ -269,6 +269,35 @@ describe Prop do
         Prop.throttle!(:no_such_handle, nil, threshold: 5, interval: 10)
       end
     end
+
+    describe ":first_throttled" do
+      before { Prop.configure(:hello, threshold: 10, interval: 10, first_throttled: true) }
+
+      it "calls back on first throttling" do
+        Prop.throttle(:hello, nil, increment: 10).must_equal false
+        Prop.throttle(:hello, nil).must_equal :first_throttled
+        Prop.throttle(:hello, nil).must_equal true
+      end
+
+      it "calls back on first throttling with increment" do
+        Prop.throttle(:hello, nil, increment: 5).must_equal false
+        Prop.throttle(:hello, nil, increment: 6).must_equal :first_throttled
+        Prop.throttle(:hello, nil).must_equal true
+      end
+
+      it "is set on exceptions" do
+        Prop.throttle!(:hello, nil, increment: 5)
+        e = assert_raises Prop::RateLimited do
+          Prop.throttle!(:hello, nil, increment: 6)
+        end
+        e.first_throttled.must_equal true
+
+        e = assert_raises Prop::RateLimited do
+          Prop.throttle!(:hello, nil, increment: 6)
+        end
+        e.first_throttled.must_equal false
+      end
+    end
   end
 
   describe "#configurations" do
