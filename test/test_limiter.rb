@@ -83,7 +83,7 @@ describe Prop::Limiter do
 
     describe "#throttle!" do
       it "throttles the given handle/key combination" do
-        Prop::Limiter.expects(:throttle).with(
+        Prop::Limiter.expects(:_throttle).with(
           :something,
           :key,
           {
@@ -99,7 +99,7 @@ describe Prop::Limiter do
       end
 
       describe "when the threshold has been reached" do
-        before { Prop::Limiter.stubs(:throttle).returns(true) }
+        before { Prop::Limiter.stubs(:_throttle).returns([true]) }
 
         it "raises a rate-limited exception" do
           assert_raises(Prop::RateLimited) { Prop.throttle!(:something) }
@@ -159,7 +159,7 @@ describe Prop::Limiter do
     describe "#throttle!" do
       describe "when the bucket is full" do
         it "raises" do
-          Prop::Limiter.expects(:throttle).returns(true)
+          Prop::Limiter.expects(:_throttle).returns([true, 1])
           assert_raises Prop::RateLimited do
             Prop::Limiter.throttle!(:something)
           end
@@ -173,7 +173,7 @@ describe Prop::Limiter do
         end
 
         it "throttles the given handle/key combination" do
-          Prop::Limiter.expects(:throttle).with(
+          Prop::Limiter.expects(:_throttle).with(
             :something,
             :key,
             {

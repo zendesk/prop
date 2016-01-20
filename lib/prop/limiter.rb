@@ -70,21 +70,8 @@ module Prop
       # (optional) a block of code that this throttle is guarding
       #
       # Returns true if the threshold for this handle has been reached, else returns false
-      def throttle(handle, key = nil, options = {})
-        return false if disabled?
-
-        options, cache_key = prepare(handle, key, options)
-        counter = @strategy.increment(cache_key, options)
-
-        if @strategy.compare_threshold?(counter, :>, options)
-          before_throttle_callback &&
-            before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
-
-          true
-        else
-          yield if block_given?
-          false
-        end
+      def throttle(handle, key = nil, options = {}, &block)
+        _throttle(handle, key, options, &block).first
       end
 
       # Public: Records a single action for the given handle/key combination.
@@ -96,14 +83,15 @@ module Prop
       #
       # Raises Prop::RateLimited if the threshold for this handle has been reached
       # Returns the value of the block if given a such, otherwise the current count of the throttle
-      def throttle!(handle, key = nil, options = {})
+      def throttle!(handle, key = nil, options = {}, &block)
         options, cache_key = prepare(handle, key, options)
+        throttled, counter = _throttle(handle, key, options, &block)
 
-        if throttle(handle, key, options)
+        if throttled
           raise Prop::RateLimited.new(options.merge(cache_key: cache_key, handle: handle))
         end
 
-        block_given? ? yield : @strategy.counter(cache_key, options)
+        block_given? ? yield : counter
       end
 
       # Public: Is the given handle/key combination currently throttled ?
@@ -147,6 +135,22 @@ module Prop
       alias :configurations :handles
 
       private
+
+      def _throttle(handle, key, options)
+        options, cache_key = prepare(handle, key, options)
+        return [false, @strategy.counter(cache_key, options)] if disabled?
+
+        counter = @strategy.increment(cache_key, options)
+
+        if @strategy.compare_threshold?(counter, :>, options)
+          before_throttle_callback &&
+            before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
+          [true, counter]
+        else
+          yield if block_given?
+          [false, counter]
+        end
+      end
 
       def disabled?
         !!@disabled
