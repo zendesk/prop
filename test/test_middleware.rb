@@ -17,7 +17,15 @@ describe Prop::Middleware do
 
   describe "when throttled" do
     before do
-      options = { handle: "foo", threshold: 10, interval: 60, cache_key: "wibble", description: "Boom!", strategy: Prop::IntervalStrategy }
+      options = {
+        handle: "foo",
+        threshold: 10,
+        interval: 60,
+        cache_key: "wibble",
+        description: "Boom!",
+        first_throttled: false, 
+        strategy: Prop::IntervalStrategy
+      }
       @app.expects(:call).with(@env).raises(Prop::RateLimited.new(options))
     end
 

@@ -12,7 +12,8 @@ describe Prop::RateLimited do
       interval: 60,
       cache_key: "wibble",
       description: "Boom!",
-      strategy: Prop::IntervalStrategy
+      strategy: Prop::IntervalStrategy,
+      first_throttled: false
     )
   end
 

@@ -86,6 +86,7 @@ describe Prop::Limiter do
         Prop::Limiter.expects(:_throttle).with(
           :something,
           :key,
+          'cache_key',
           {
             threshold: 10,
             interval:  10,
@@ -176,6 +177,7 @@ describe Prop::Limiter do
           Prop::Limiter.expects(:_throttle).with(
             :something,
             :key,
+            'cache_key',
             {
               threshold:  10,
               interval:   1,

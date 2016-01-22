@@ -29,6 +29,10 @@ module Prop
         counter.send operator, options.fetch(:threshold)
       end
 
+      def first_throttled?(counter, options)
+        (counter - options.fetch(:increment, 1)) <= options.fetch(:threshold)
+      end
+
       # Builds the expiring cache key
       def build(options)
         key       = options.fetch(:key)
