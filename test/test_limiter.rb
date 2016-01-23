@@ -74,9 +74,8 @@ describe Prop::Limiter do
         end
 
         it "executes a block" do
-          test_block_executed = false
-          Prop.throttle(:something) { test_block_executed = true }
-          assert test_block_executed
+          calls = []
+          Prop.throttle(:something) { calls << true }.must_equal [true]
         end
       end
     end
@@ -121,7 +120,8 @@ describe Prop::Limiter do
         end
 
         it "returns the return value of a block" do
-          Prop.throttle!(:something) { 'block_value' }.must_equal 'block_value'
+          calls = []
+          Prop.throttle!(:something) { calls << 'block_value' }.must_equal ['block_value']
         end
       end
     end

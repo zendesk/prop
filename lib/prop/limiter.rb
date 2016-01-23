@@ -70,9 +70,10 @@ module Prop
       # (optional) a block of code that this throttle is guarding
       #
       # Returns true if the threshold for this handle has been reached, else returns false
-      def throttle(handle, key = nil, options = {}, &block)
+      def throttle(handle, key = nil, options = {})
         options, cache_key = prepare(handle, key, options)
-        _throttle(handle, key, cache_key, options, &block).first
+        throttled = _throttle(handle, key, cache_key, options).first
+        block_given? && !throttled ? yield : throttled
       end
 
       # Public: Records a single action for the given handle/key combination.
@@ -86,7 +87,7 @@ module Prop
       # Returns the value of the block if given a such, otherwise the current count of the throttle
       def throttle!(handle, key = nil, options = {}, &block)
         options, cache_key = prepare(handle, key, options)
-        throttled, counter = _throttle(handle, key, cache_key, options, &block)
+        throttled, counter = _throttle(handle, key, cache_key, options)
 
         if throttled
           raise Prop::RateLimited.new(options.merge(
@@ -158,7 +159,6 @@ module Prop
 
           [result, counter]
         else
-          yield if block_given?
           [false, counter]
         end
       end
