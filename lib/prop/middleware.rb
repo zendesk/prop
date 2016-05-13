@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Prop
 
   # Convenience middleware that conveys the message configured on a Prop handle as well

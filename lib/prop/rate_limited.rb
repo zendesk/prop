@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Prop
   class RateLimited < StandardError
     attr_accessor :handle, :cache_key, :retry_after, :description, :first_throttled

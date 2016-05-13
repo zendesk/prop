@@ -1,4 +1,4 @@
-require 'prop/limiter'
+# frozen_string_literal: true
 require 'prop/options'
 require 'prop/key'
 

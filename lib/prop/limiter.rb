@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'prop/rate_limited'
 require 'prop/key'
 require 'prop/options'
@@ -164,7 +165,7 @@ module Prop
       end
 
       def disabled?
-        !!@disabled
+        defined?(@disabled) && !!@disabled
       end
 
       def prepare(handle, key, params)
