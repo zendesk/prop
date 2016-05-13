@@ -1,7 +1,6 @@
-require 'prop/limiter'
+# frozen_string_literal: true
 require 'prop/options'
 require 'prop/key'
-require 'prop/interval_strategy'
 
 module Prop
   class LeakyBucketStrategy

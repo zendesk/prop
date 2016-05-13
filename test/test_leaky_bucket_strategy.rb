@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative 'helper'
 
 describe Prop::LeakyBucketStrategy do
@@ -66,7 +67,7 @@ describe Prop::LeakyBucketStrategy do
 
   describe "#build" do
     it "returns a hexdigested key" do
-      Prop::LeakyBucketStrategy.build(handle: :hello, key: [ "foo", 2, :bar ]).must_match /prop\/leaky_bucket\/[a-f0-9]+/
+      Prop::LeakyBucketStrategy.build(handle: :hello, key: [ "foo", 2, :bar ]).must_match(/prop\/leaky_bucket\/[a-f0-9]+/)
     end
   end
 
