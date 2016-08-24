@@ -157,6 +157,13 @@ Prop.configure(:execute_time, threshold: 10, interval: 1.minute)
 Prop.throttle!(:execute_time, account.id, increment: (Benchmark.realtime { execute }).to_i)
 ```
 
+We also support decrement, in case of api failures we do not increase rate limits.
+`:decrement` is only supported for `IntervalStrategy` for now
+
+```ruby
+Prop.throttle!(:api_counts, request.remote_ip, decrement: 1)
+```
+
 ## Optional configuration
 
 You can add optional configuration to a prop and retrieve it using `Prop.configurations[:foo]`:
