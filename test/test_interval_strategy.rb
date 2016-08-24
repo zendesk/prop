@@ -24,21 +24,26 @@ describe Prop::IntervalStrategy do
     end
   end
 
-  describe "#increment" do
+  describe "#change" do
     it "increments an empty bucket" do
-      Prop::IntervalStrategy.increment(@key, increment: 5)
+      Prop::IntervalStrategy.change(@key, increment: 5)
       assert_equal 5, Prop::IntervalStrategy.counter(@key, nil)
     end
 
+    it "decrements an empty bucket" do
+      Prop::IntervalStrategy.change(@key, decrement: 5)
+      assert_equal -5, Prop::IntervalStrategy.counter(@key, nil)
+    end
+
     it "increments a filled bucket" do
-      Prop::IntervalStrategy.increment(@key, increment: 5)
-      Prop::IntervalStrategy.increment(@key, increment: 5)
+      Prop::IntervalStrategy.change(@key, increment: 5)
+      Prop::IntervalStrategy.change(@key, increment: 5)
       assert_equal 10, Prop::IntervalStrategy.counter(@key, nil)
     end
 
     it "does not write non-integers" do
       assert_raises ArgumentError do
-        Prop::IntervalStrategy.increment(@key, increment: "WHOOPS")
+        Prop::IntervalStrategy.change(@key, increment: "WHOOPS")
       end
     end
   end

@@ -28,16 +28,22 @@ describe Prop::LeakyBucketStrategy do
     end
   end
 
-  describe "#increment" do
+  describe "#change" do
     it "increments an empty bucket" do
-      Prop::LeakyBucketStrategy.increment(@key, increment: 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.change(@key, increment: 5, interval: 1, threshold: 10)
       Prop::Limiter.cache.read(@key).must_equal bucket: 5, last_updated: @time.to_i
     end
 
     it "increments an existing bucket" do
-      Prop::LeakyBucketStrategy.increment(@key, increment: 5, interval: 1, threshold: 10)
-      Prop::LeakyBucketStrategy.increment(@key, increment: 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.change(@key, increment: 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.change(@key, increment: 5, interval: 1, threshold: 10)
       Prop::Limiter.cache.read(@key).must_equal bucket: 10, last_updated: @time.to_i
+    end
+
+    it "cannot decrement an empty bucket" do
+      assert_raises ArgumentError do
+        Prop::LeakyBucketStrategy.change(@key, decrement: 5)
+      end
     end
   end
 
