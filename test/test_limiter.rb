@@ -24,7 +24,7 @@ describe Prop::Limiter do
         Prop.throttle(:something)
         Prop.count(:something).must_equal 1
 
-        Prop.throttle(:something, decrement: 1)
+        Prop.throttle(:something, nil, decrement: 1)
         Prop.count(:something).must_equal 0
       end
 

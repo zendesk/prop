@@ -13,18 +13,10 @@ module Prop
         Prop::Limiter.cache.read(cache_key).to_i
       end
 
-      def increment(cache_key, options)
-        change(cache_key, options.fetch(:increment, 1))
-      end
-
-      def decrement(cache_key, options)
-        if counter(cache_key, options) <= zero_counter
-          raise ArgumentError, "Can not decrease below #{zero_counter}"
-        end
-        change(cache_key, -(options.fetch(:decrement, 1)))
-      end
-
-      def change(cache_key, amount)
+      def change(cache_key, options)
+        amount = options.key?(:decrement) ?
+          -(options.fetch(:decrement)) :
+          options.fetch(:increment, 1)
         raise ArgumentError, "Change amount must be a Fixnum, was #{amount.class}" unless amount.is_a?(Fixnum)
         cache = Prop::Limiter.cache
         cache.increment(cache_key, amount) || (cache.write(cache_key, amount, raw: true) && amount) # WARNING: potential race condition
