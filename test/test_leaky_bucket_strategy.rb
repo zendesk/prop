@@ -40,7 +40,7 @@ describe Prop::LeakyBucketStrategy do
       Prop::Limiter.cache.read(@key).must_equal bucket: 10, last_updated: @time.to_i
     end
 
-    it "decrements an empty bucket" do
+    it "cannot decrement an empty bucket" do
       assert_raises ArgumentError do
         Prop::LeakyBucketStrategy.change(@key, decrement: 5)
       end

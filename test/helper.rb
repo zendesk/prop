@@ -8,7 +8,6 @@ require 'time'
 require 'prop'
 require 'active_support/cache'
 require 'active_support/cache/memory_store'
-require 'active_support/notifications'
 
 Minitest::Test.class_eval do
   def setup_fake_store

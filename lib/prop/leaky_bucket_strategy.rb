@@ -18,7 +18,9 @@ module Prop
       # WARNING: race condition
       # this increment is not atomic, so it might miss counts when used frequently
       def change(cache_key, options)
+        # please open a PR if you know how to support this
         raise ArgumentError, "decrement is not supported for LeakyBucketStrategy" if options.key?(:decrement)
+
         counter = counter(cache_key, options)
         counter[:bucket] += options.fetch(:increment, 1)
         Prop::Limiter.cache.write(cache_key, counter)

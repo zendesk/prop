@@ -20,12 +20,12 @@ describe Prop::Limiter do
         Prop::Limiter.disabled { Prop.throttle(:something) }.must_equal false
       end
 
-      it "supports decrement" do
+      it "supports decrement and can below 0" do
         Prop.throttle(:something)
         Prop.count(:something).must_equal 1
 
-        Prop.throttle(:something, nil, decrement: 1)
-        Prop.count(:something).must_equal 0
+        Prop.throttle(:something, nil, decrement: 5)
+        Prop.count(:something).must_equal -4
       end
 
       describe "and the threshold has been reached" do
