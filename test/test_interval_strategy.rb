@@ -43,6 +43,20 @@ describe Prop::IntervalStrategy do
     end
   end
 
+  describe "#decrement" do
+    it "raises error when decrements an empty bucket" do
+      assert_raises ArgumentError do
+        Prop::IntervalStrategy.decrement(@key, decrement: 1)
+      end
+    end
+
+    it "does not write non-integers" do
+      assert_raises ArgumentError do
+        Prop::IntervalStrategy.decrement(@key, decrement: "WHOOPS")
+      end
+    end
+  end
+
   describe "#reset" do
     before { Prop::Limiter.cache.write(@key, 100) }
 

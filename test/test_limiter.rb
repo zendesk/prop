@@ -20,6 +20,14 @@ describe Prop::Limiter do
         Prop::Limiter.disabled { Prop.throttle(:something) }.must_equal false
       end
 
+      it "supports decrement" do
+        Prop.throttle(:something)
+        Prop.count(:something).must_equal 1
+
+        Prop.throttle(:something, decrement: 1)
+        Prop.count(:something).must_equal 0
+      end
+
       describe "and the threshold has been reached" do
         before { Prop::IntervalStrategy.stubs(:compare_threshold?).returns(true) }
 

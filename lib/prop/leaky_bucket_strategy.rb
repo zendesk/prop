@@ -24,6 +24,10 @@ module Prop
         counter
       end
 
+      def decrement(cache_key, options)
+        raise ArgumentError.new("decrement is not supported for this strategy")
+      end
+
       def reset(cache_key)
         Prop::Limiter.cache.write(cache_key, zero_counter)
       end

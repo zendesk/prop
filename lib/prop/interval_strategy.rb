@@ -14,10 +14,20 @@ module Prop
       end
 
       def increment(cache_key, options)
-        increment = options.fetch(:increment, 1)
-        raise ArgumentError, "Increment must be a Fixnum, was #{increment.class}" unless increment.is_a?(Fixnum)
+        change(cache_key, options.fetch(:increment, 1))
+      end
+
+      def decrement(cache_key, options)
+        if counter(cache_key, options) <= zero_counter
+          raise ArgumentError, "Can not decrease below #{zero_counter}"
+        end
+        change(cache_key, -(options.fetch(:decrement, 1)))
+      end
+
+      def change(cache_key, amount)
+        raise ArgumentError, "Change amount must be a Fixnum, was #{amount.class}" unless amount.is_a?(Fixnum)
         cache = Prop::Limiter.cache
-        cache.increment(cache_key, increment) || (cache.write(cache_key, increment, raw: true) && increment) # WARNING: potential race condition
+        cache.increment(cache_key, amount) || (cache.write(cache_key, amount, raw: true) && amount) # WARNING: potential race condition
       end
 
       def reset(cache_key)
@@ -55,8 +65,9 @@ module Prop
         validate_positive_integer(options[:threshold], :threshold)
         validate_positive_integer(options[:interval], :interval)
 
-        if options.key?(:increment)
-          raise ArgumentError.new(":increment must be zero or a positive Integer") if !options[:increment].is_a?(Fixnum) || options[:increment] < 0
+        amount = options[:increment] || options[:decrement]
+        if amount
+          raise ArgumentError.new(":increment or :decrement must be zero or a positive Integer") if !amount.is_a?(Fixnum) || amount < 0
         end
       end
 
