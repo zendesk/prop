@@ -157,7 +157,7 @@ Prop.configure(:execute_time, threshold: 10, interval: 1.minute)
 Prop.throttle!(:execute_time, account.id, increment: (Benchmark.realtime { execute }).to_i)
 ```
 
-We also support decrement, in case of api failures we do not increase rate limits.
+Decrement can be used to for example throttle before an expensive action and then give quota back when some condition is met.
 `:decrement` is only supported for `IntervalStrategy` for now
 
 ```ruby

@@ -16,5 +16,6 @@ Gem::Specification.new "prop", Prop::VERSION do |s|
   s.add_development_dependency('activesupport')
   s.add_development_dependency('bump')
 
+  s.required_ruby_version = '>= 2.0'
   s.files = `git ls-files lib LICENSE README.md`.split("\n")
 end
