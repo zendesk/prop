@@ -17,11 +17,7 @@ module Prop
 
       # WARNING: race condition
       # this increment is not atomic, so it might miss counts when used frequently
-      def change(cache_key, options)
-        amount = options.key?(:decrement) ?
-          -(options.fetch(:decrement)) :
-          options.fetch(:increment, 1)
-
+      def change(cache_key, amount, options)
         counter = counter(cache_key, options)
         counter[:bucket] += amount
         Prop::Limiter.cache.write(cache_key, counter)

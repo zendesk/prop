@@ -146,7 +146,10 @@ module Prop
       def _throttle(handle, key, cache_key, options)
         return [false, @strategy.zero_counter] if disabled?
 
-        counter = @strategy.change(cache_key, options)
+        amount = options.key?(:decrement) ?
+          -(options.fetch(:decrement)) :
+          options.fetch(:increment, 1)
+        counter = @strategy.change(cache_key, amount, options)
 
         if @strategy.compare_threshold?(counter, :>, options)
           before_throttle_callback &&
