@@ -158,7 +158,6 @@ Prop.throttle!(:execute_time, account.id, increment: (Benchmark.realtime { execu
 ```
 
 Decrement can be used to for example throttle before an expensive action and then give quota back when some condition is met.
-`:decrement` is only supported for `IntervalStrategy` for now
 
 ```ruby
 Prop.throttle!(:api_counts, request.remote_ip, decrement: 1)
