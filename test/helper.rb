@@ -7,6 +7,7 @@ require 'mocha/setup'
 require 'time'
 require 'prop'
 require 'active_support/cache'
+require 'active_support/notifications'
 require 'active_support/cache/memory_store'
 
 Minitest::Test.class_eval do
