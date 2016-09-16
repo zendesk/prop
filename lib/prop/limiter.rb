@@ -20,7 +20,7 @@ module Prop
       end
 
       def cache=(cache)
-        [:read, :write, :increment].each do |method|
+        [:read, :write, :increment, :decrement].each do |method|
           next if cache.respond_to?(method)
           raise ArgumentError, "Cache needs to respond to #{method}"
         end
@@ -146,10 +146,9 @@ module Prop
       def _throttle(handle, key, cache_key, options)
         return [false, @strategy.zero_counter] if disabled?
 
-        amount = options.key?(:decrement) ?
-          -(options.fetch(:decrement)) :
-          options.fetch(:increment, 1)
-        counter = @strategy.change(cache_key, amount, options)
+        counter = options.key?(:decrement) ?
+          @strategy.decrement(cache_key, options.fetch(:decrement), options) :
+          @strategy.increment(cache_key, options.fetch(:increment, 1), options)
 
         if @strategy.compare_threshold?(counter, :>, options)
           before_throttle_callback &&
