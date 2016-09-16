@@ -28,21 +28,29 @@ describe Prop::LeakyBucketStrategy do
     end
   end
 
-  describe "#change" do
+  describe "#increment" do
     it "increments an empty bucket" do
-      Prop::LeakyBucketStrategy.change(@key, 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.increment(@key, 5, interval: 1, threshold: 10)
       Prop::Limiter.cache.read(@key).must_equal bucket: 5, last_updated: @time.to_i
     end
 
     it "increments an existing bucket" do
-      Prop::LeakyBucketStrategy.change(@key, 5, interval: 1, threshold: 10)
-      Prop::LeakyBucketStrategy.change(@key, 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.increment(@key, 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.increment(@key, 5, interval: 1, threshold: 10)
       Prop::Limiter.cache.read(@key).must_equal bucket: 10, last_updated: @time.to_i
     end
+  end
 
-    it "can decrement an empty bucket" do
-      Prop::LeakyBucketStrategy.change(@key, -5, interval: 1, threshold: 10)
-      Prop::Limiter.cache.read(@key).must_equal bucket: -5, last_updated: @time.to_i
+  describe "#decrement" do
+    it "returns 0 when decrement an empty bucket" do
+      Prop::LeakyBucketStrategy.decrement(@key, 5, interval: 1, threshold: 10)
+      Prop::Limiter.cache.read(@key).must_equal bucket: 0, last_updated: @time.to_i
+    end
+
+    it "decrements an existing bucket" do
+      Prop::LeakyBucketStrategy.increment(@key, 5, interval: 1, threshold: 10)
+      Prop::LeakyBucketStrategy.decrement(@key, 3, interval: 1, threshold: 10)
+      Prop::Limiter.cache.read(@key).must_equal bucket: 2, last_updated: @time.to_i
     end
   end
 

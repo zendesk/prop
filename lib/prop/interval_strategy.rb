@@ -10,18 +10,22 @@ module Prop
       end
 
       def counter(cache_key, options)
-        Prop::Limiter.cache.read(cache_key).to_i
+        cache.read(cache_key).to_i
       end
 
       # options argument is kept for api consistency for all strategies
-      def change(cache_key, amount, options = {})
+      def increment(cache_key, amount, options = {})
         raise ArgumentError, "Change amount must be a Fixnum, was #{amount.class}" unless amount.is_a?(Fixnum)
-        cache = Prop::Limiter.cache
         cache.increment(cache_key, amount) || (cache.write(cache_key, amount, raw: true) && amount) # WARNING: potential race condition
       end
 
+      def decrement(cache_key, amount, options = {})
+        raise ArgumentError, "Change amount must be a Fixnum, was #{amount.class}" unless amount.is_a?(Fixnum)
+        cache.decrement(cache_key, amount) || (cache.write(cache_key, 0, raw: true) && 0) # WARNING: potential race condition
+      end
+
       def reset(cache_key)
-        Prop::Limiter.cache.write(cache_key, zero_counter, raw: true)
+        cache.write(cache_key, zero_counter, raw: true)
       end
 
       def compare_threshold?(counter, operator, options)
@@ -65,6 +69,10 @@ module Prop
 
       def validate_positive_integer(option, key)
         raise ArgumentError.new("#{key.inspect} must be a positive Integer") if !option.is_a?(Fixnum) || option <= 0
+      end
+
+      def cache
+        Prop::Limiter.cache
       end
     end
   end

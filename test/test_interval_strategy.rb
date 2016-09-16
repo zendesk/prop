@@ -24,26 +24,40 @@ describe Prop::IntervalStrategy do
     end
   end
 
-  describe "#change" do
+  describe "#increment" do
     it "increments an empty bucket" do
-      Prop::IntervalStrategy.change(@key, 5)
+      Prop::IntervalStrategy.increment(@key, 5)
       assert_equal 5, Prop::IntervalStrategy.counter(@key, nil)
     end
 
-    it "decrements an empty bucket" do
-      Prop::IntervalStrategy.change(@key, -5)
-      assert_equal -5, Prop::IntervalStrategy.counter(@key, nil)
-    end
-
     it "increments a filled bucket" do
-      Prop::IntervalStrategy.change(@key, 5)
-      Prop::IntervalStrategy.change(@key, 5)
+      Prop::IntervalStrategy.increment(@key, 5)
+      Prop::IntervalStrategy.increment(@key, 5)
       assert_equal 10, Prop::IntervalStrategy.counter(@key, nil)
     end
 
     it "does not write non-integers" do
       assert_raises ArgumentError do
-        Prop::IntervalStrategy.change(@key, "WHOOPS")
+        Prop::IntervalStrategy.increment(@key, "WHOOPS")
+      end
+    end
+  end
+
+  describe "#decrement" do
+    it "returns 0 when decrements an empty bucket" do
+      Prop::IntervalStrategy.decrement(@key, -5)
+      assert_equal 0, Prop::IntervalStrategy.counter(@key, nil)
+    end
+
+    it "decrements a filled bucket" do
+      Prop::IntervalStrategy.increment(@key, 5)
+      Prop::IntervalStrategy.decrement(@key, 2)
+      assert_equal 3, Prop::IntervalStrategy.counter(@key, nil)
+    end
+
+    it "does not write non-integers" do
+      assert_raises ArgumentError do
+        Prop::IntervalStrategy.decrement(@key, "WHOOPS")
       end
     end
   end
