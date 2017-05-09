@@ -1,7 +1,7 @@
 PATH
-  remote: /Users/kunday/Code/zendesk/prop
+  remote: ..
   specs:
-    prop (2.2.2)
+    prop (2.2.3)
 
 GEM
   remote: https://rubygems.org/
