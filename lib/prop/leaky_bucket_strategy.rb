@@ -59,7 +59,7 @@ module Prop
       def validate_options!(options)
         Prop::IntervalStrategy.validate_options!(options)
 
-        if !options[:burst_rate].is_a?(Fixnum) || options[:burst_rate] < options[:threshold]
+        if !options[:burst_rate].is_a?(Integer) || options[:burst_rate] < options[:threshold]
           raise ArgumentError.new(":burst_rate must be an Integer and not less than :threshold")
         end
 
