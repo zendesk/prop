@@ -3,7 +3,7 @@ require_relative 'helper'
 
 describe Prop::Key do
   describe "#normalize" do
-    it "turn a Fixnum into a String" do
+    it "turn a Integer into a String" do
       Prop::Key.normalize(3).must_equal "3"
     end
 

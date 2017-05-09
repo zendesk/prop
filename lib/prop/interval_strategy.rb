@@ -15,12 +15,12 @@ module Prop
 
       # options argument is kept for api consistency for all strategies
       def increment(cache_key, amount, options = {})
-        raise ArgumentError, "Change amount must be a Fixnum, was #{amount.class}" unless amount.is_a?(Fixnum)
+        raise ArgumentError, "Change amount must be a Integer, was #{amount.class}" unless amount.is_a?(Integer)
         cache.increment(cache_key, amount) || (cache.write(cache_key, amount, raw: true) && amount) # WARNING: potential race condition
       end
 
       def decrement(cache_key, amount, options = {})
-        raise ArgumentError, "Change amount must be a Fixnum, was #{amount.class}" unless amount.is_a?(Fixnum)
+        raise ArgumentError, "Change amount must be a Integer, was #{amount.class}" unless amount.is_a?(Integer)
         cache.decrement(cache_key, amount) || (cache.write(cache_key, 0, raw: true) && 0) # WARNING: potential race condition
       end
 
@@ -61,14 +61,14 @@ module Prop
 
         amount = options[:increment] || options[:decrement]
         if amount
-          raise ArgumentError.new(":increment or :decrement must be zero or a positive Integer") if !amount.is_a?(Fixnum) || amount < 0
+          raise ArgumentError.new(":increment or :decrement must be zero or a positive Integer") if !amount.is_a?(Integer) || amount < 0
         end
       end
 
       private
 
       def validate_positive_integer(option, key)
-        raise ArgumentError.new("#{key.inspect} must be a positive Integer") if !option.is_a?(Fixnum) || option <= 0
+        raise ArgumentError.new("#{key.inspect} must be a positive Integer") if !option.is_a?(Integer) || option <= 0
       end
 
       def cache
