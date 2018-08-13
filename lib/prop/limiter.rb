@@ -72,8 +72,8 @@ module Prop
       #
       # Returns true if the threshold for this handle has been reached, else returns false
       def throttle(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
-        throttled = _throttle(handle, key, cache_key, options).first
+        options, cache_key, strategy = prepare(handle, key, options)
+        throttled = _throttle(strategy, handle, key, cache_key, options).first
         block_given? && !throttled ? yield : throttled
       end
 
@@ -87,8 +87,8 @@ module Prop
       # Raises Prop::RateLimited if the threshold for this handle has been reached
       # Returns the value of the block if given a such, otherwise the current count of the throttle
       def throttle!(handle, key = nil, options = {}, &block)
-        options, cache_key = prepare(handle, key, options)
-        throttled, counter = _throttle(handle, key, cache_key, options)
+        options, cache_key, strategy = prepare(handle, key, options)
+        throttled, counter = _throttle(strategy, handle, key, cache_key, options)
 
         if throttled
           raise Prop::RateLimited.new(options.merge(
@@ -108,9 +108,9 @@ module Prop
       #
       # Returns true if a call to `throttle!` with same parameters would raise, otherwise false
       def throttled?(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
-        counter = @strategy.counter(cache_key, options)
-        @strategy.compare_threshold?(counter, :>=, options)
+        options, cache_key, strategy = prepare(handle, key, options)
+        counter = strategy.counter(cache_key, options)
+        strategy.compare_threshold?(counter, :>=, options)
       end
 
       # Public: Resets a specific throttle
@@ -120,8 +120,8 @@ module Prop
       #
       # Returns nothing
       def reset(handle, key = nil, options = {})
-        _options, cache_key = prepare(handle, key, options)
-        @strategy.reset(cache_key)
+        _options, cache_key, strategy = prepare(handle, key, options)
+        strategy.reset(cache_key)
       end
 
       # Public: Counts the number of times the given handle/key combination has been hit in the current window
@@ -131,8 +131,8 @@ module Prop
       #
       # Returns a count of hits in the current window
       def count(handle, key = nil, options = {})
-        options, cache_key = prepare(handle, key, options)
-        @strategy.counter(cache_key, options)
+        options, cache_key, strategy = prepare(handle, key, options)
+        strategy.counter(cache_key, options)
       end
       alias :query :count
 
@@ -143,18 +143,18 @@ module Prop
 
       private
 
-      def _throttle(handle, key, cache_key, options)
-        return [false, @strategy.zero_counter] if disabled?
+      def _throttle(strategy, handle, key, cache_key, options)
+        return [false, strategy.zero_counter] if disabled?
 
         counter = options.key?(:decrement) ?
-          @strategy.decrement(cache_key, options.fetch(:decrement), options) :
-          @strategy.increment(cache_key, options.fetch(:increment, 1), options)
+          strategy.decrement(cache_key, options.fetch(:decrement), options) :
+          strategy.increment(cache_key, options.fetch(:increment, 1), options)
 
-        if @strategy.compare_threshold?(counter, :>, options)
+        if strategy.compare_threshold?(counter, :>, options)
           before_throttle_callback &&
             before_throttle_callback.call(handle, key, options[:threshold], options[:interval])
 
-          result = if options[:first_throttled] && @strategy.first_throttled?(counter, options)
+          result = if options[:first_throttled] && strategy.first_throttled?(counter, options)
             :first_throttled
           else
             true
@@ -177,11 +177,11 @@ module Prop
 
         options = Prop::Options.build(key: key, params: params, defaults: defaults)
 
-        @strategy = options.fetch(:strategy)
+        strategy = options.fetch(:strategy)
 
-        cache_key = @strategy.build(key: key, handle: handle, interval: options[:interval])
+        cache_key = strategy.build(key: key, handle: handle, interval: options[:interval])
 
-        [ options, cache_key ]
+        [ options, cache_key, strategy ]
       end
     end
   end
