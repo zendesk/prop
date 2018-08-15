@@ -2,6 +2,45 @@
 require_relative 'helper'
 
 describe Prop::Limiter do
+  context "both strategies are being used simultaneously" do
+    before do
+      cache = setup_fake_store
+      def cache.increment(_, _)
+        sleep 0.0001
+      end
+
+      Prop.configure(:interval, threshold: 1, interval: 1)
+      Prop.configure(:leaky_bucket, strategy: :leaky_bucket, burst_rate: 1, threshold: 1, interval: 1)
+    end
+
+    def self.it_handles_concurrency(method)
+      it "handles concurrency" do
+        calculated_value = 0
+
+        interval_thread = Thread.new do
+           Prop.send(method, :interval) { calculated_value += 1 }
+        end
+        leaky_bucket_strategy_thread = Thread.new do
+          Prop.send(method, :leaky_bucket) { calculated_value += 1 }
+        end
+        interval_thread.join
+        leaky_bucket_strategy_thread.join
+
+        calculated_value.must_equal 2
+      end
+    end
+
+    describe "#throttle" do
+      it_handles_concurrency('throttle')
+    end
+
+    describe "#throttle!" do
+      it_handles_concurrency('throttle!')
+    end
+  end
+end
+
+describe Prop::Limiter do
   before do
     @cache_key = "cache_key"
     setup_fake_store
@@ -92,6 +131,7 @@ describe Prop::Limiter do
     describe "#throttle!" do
       it "throttles the given handle/key combination" do
         Prop::Limiter.expects(:_throttle).with(
+          Prop::IntervalStrategy,
           :something,
           :key,
           'cache_key',
@@ -184,6 +224,7 @@ describe Prop::Limiter do
 
         it "throttles the given handle/key combination" do
           Prop::Limiter.expects(:_throttle).with(
+            Prop::LeakyBucketStrategy,
             :something,
             :key,
             'cache_key',
