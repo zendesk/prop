@@ -8,9 +8,10 @@ module Prop
       def counter(cache_key, options)
         bucket = Prop::Limiter.cache.read(cache_key) || zero_counter
         now = Time.now.to_i
-        leak_amount = (now - bucket.fetch(:last_updated)) / options.fetch(:interval) * options.fetch(:threshold)
+        leak_rate = (now - bucket.fetch(:last_updated)) / options.fetch(:interval).to_f
+        leak_amount =  leak_rate * options.fetch(:threshold)
 
-        bucket[:bucket] = [bucket.fetch(:bucket) - leak_amount, 0].max
+        bucket[:bucket] = [(bucket.fetch(:bucket) - leak_amount).to_i, 0].max
         bucket[:last_updated] = now
         bucket
       end
