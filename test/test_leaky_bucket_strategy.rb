@@ -68,6 +68,13 @@ describe Prop::LeakyBucketStrategy do
       Prop::LeakyBucketStrategy.decrement(@key, 3, interval: 1, threshold: 10)
       Prop::Limiter.cache.read(@key).must_equal bucket: 2, last_updated: @time.to_i
     end
+
+    it "adjusts bucket when elapsed time is less than interval" do
+      # bucket updated 5 seconds ago with leak rate of 1/second
+      Prop::Limiter.cache.write(@key, { bucket: 10, last_updated: @time.to_i - 5 })
+      Prop::LeakyBucketStrategy.decrement(@key, 0, interval: 60, threshold: 60)
+      Prop::Limiter.cache.read(@key).must_equal bucket: 5, last_updated: @time.to_i
+    end
   end
 
   describe "#reset" do
