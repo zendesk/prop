@@ -46,8 +46,7 @@ module Prop
       #
       # Raises Prop::RateLimited if the number if the threshold for this handle has been reached
       def configure(handle, defaults)
-        raise ArgumentError.new("Invalid threshold setting") unless defaults[:threshold].to_i > 0
-        raise ArgumentError.new("Invalid interval setting")  unless defaults[:interval].to_i > 0
+        Prop::Options.validate_options!(defaults)
 
         self.handles ||= {}
         self.handles[handle] = defaults
@@ -56,7 +55,7 @@ module Prop
       # Public: Disables Prop for a block of code
       #
       # block    - a block of code within which Prop will not raise
-      def disabled(&block)
+      def disabled(&_block)
         @disabled = true
         yield
       ensure
