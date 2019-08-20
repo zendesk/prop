@@ -50,6 +50,13 @@ describe Prop do
       Prop.throttle!(:hello_there, [ 5, '6' ]).must_equal 1
       Prop.throttle!(:hello_there, [ 5, '6' ]).must_equal 2
     end
+
+    it "allow to create 0 limit threshold" do
+      Prop.configure :hello_there, threshold: 0, interval: 10
+      assert_raises(Prop::RateLimited) do
+        Prop.throttle! :hello_there, 0
+      end
+    end
   end
 
   describe "#disable" do
@@ -61,6 +68,13 @@ describe Prop do
           count(Prop.throttle!(:hello)).must_equal 0
         end
         count(Prop.throttle!(:hello)).must_equal 2
+      end
+
+      it "does not increase the throttle with threshold 0" do
+        Prop.configure :hello, options.merge(threshold: 0, interval: 10)
+        Prop.disabled do
+          count(Prop.throttle!(:hello)).must_equal 0
+        end
       end
     end
   end

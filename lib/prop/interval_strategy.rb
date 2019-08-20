@@ -56,8 +56,8 @@ module Prop
       end
 
       def validate_options!(options)
-        validate_positive_integer(options[:threshold], :threshold)
-        validate_positive_integer(options[:interval], :interval)
+        validate_threshold(options[:threshold], :threshold)
+        validate_interval(options[:interval], :interval)
 
         amount = options[:increment] || options[:decrement]
         if amount
@@ -67,7 +67,11 @@ module Prop
 
       private
 
-      def validate_positive_integer(option, key)
+      def validate_threshold(option, key)
+        raise ArgumentError.new("#{key.inspect} must be a non-negative Integer") if !option.is_a?(Integer) || option < 0
+      end
+
+      def validate_interval(option, key)
         raise ArgumentError.new("#{key.inspect} must be a positive Integer") if !option.is_a?(Integer) || option <= 0
       end
 

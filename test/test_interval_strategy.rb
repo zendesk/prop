@@ -101,5 +101,12 @@ describe Prop::IntervalStrategy do
         refute Prop::IntervalStrategy.validate_options!(arg)
       end
     end
+
+    describe "when :threshold is set to zero to disable the prop" do
+      it "does not raise exception" do
+        arg = { threshold: 0, interval: 1, increment: 1}
+        refute Prop::IntervalStrategy.validate_options!(arg)
+      end
+    end
   end
 end

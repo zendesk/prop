@@ -37,6 +37,9 @@ Example: Limit on accepted emails per hour from a given user, by defining a thre
 
 ```ruby
 Prop.configure(:mails_per_hour, threshold: 100, interval: 1.hour, description: "Mail rate limit exceeded")
+
+# Block requests by setting threshold to 0
+Prop.configure(:mails_per_hour, threshold: 0, interval: 1.hour, description: "All mail is blocked")
 ```
 
 ```ruby
