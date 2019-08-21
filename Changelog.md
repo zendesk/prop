@@ -1,9 +1,9 @@
 # Changes
 
-## Next (Unreleased)
+## 2.4.0
 
-* Bugfix: Fix leaky bucket leak calculation
-* See [PR description](https://github.com/zendesk/prop/pull/34)
+* Allow zero case for threshold when configure the prop
+* See [PR description](https://github.com/zendesk/prop/pull/37)
 
 ## 2.3.0
 
