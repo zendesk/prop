@@ -142,8 +142,16 @@ module Prop
 
       private
 
+      def leaky_bucket_strategy?(strategy)
+        strategy == Prop::LeakyBucketStrategy
+      end
+
       def _throttle(strategy, handle, key, cache_key, options)
         return [false, strategy.zero_counter] if disabled?
+
+        if leaky_bucket_strategy?(strategy)
+          return Prop::LeakyBucketStrategy._throttle_leaky_bucket(handle, key, cache_key, options)
+        end
 
         counter = options.key?(:decrement) ?
           strategy.decrement(cache_key, options.fetch(:decrement), options) :

@@ -9,8 +9,8 @@ describe Prop::Limiter do
         sleep 0.0001
       end
 
-      Prop.configure(:interval, threshold: 1, interval: 1)
-      Prop.configure(:leaky_bucket, strategy: :leaky_bucket, burst_rate: 1, threshold: 1, interval: 1)
+      Prop.configure(:interval, threshold: 1, interval: 1.minute)
+      Prop.configure(:leaky_bucket, strategy: :leaky_bucket, burst_rate: 2, threshold: 1, interval: 1.minute)
     end
 
     def self.it_handles_concurrency(method)
@@ -73,7 +73,6 @@ describe Prop::Limiter do
         it "returns true" do
           assert Prop.throttle(:something)
         end
-
         it "increments the throttle count" do
           Prop.throttle(:something)
           Prop.count(:something).must_equal 1
@@ -178,7 +177,7 @@ describe Prop::Limiter do
 
   describe Prop::LeakyBucketStrategy do
     before do
-      Prop::Limiter.configure(:something, threshold: 10, interval: 1, burst_rate: 100, strategy: :leaky_bucket)
+      Prop::Limiter.configure(:something, threshold: 10, interval: 60, burst_rate: 100, strategy: :leaky_bucket)
       Prop::LeakyBucketStrategy.stubs(:build).returns(@cache_key)
     end
 
@@ -187,20 +186,7 @@ describe Prop::Limiter do
         it "increments the count number and saves timestamp in the bucket" do
           refute Prop::Limiter.throttle(:something)
           Prop::Limiter.count(:something).must_equal(
-            bucket: 1, last_updated: @time.to_i
-          )
-        end
-      end
-
-      describe "when the bucket is full" do
-        before do
-          Prop::LeakyBucketStrategy.stubs(:compare_threshold?).returns(true)
-        end
-
-        it "returns true and increments the counter" do
-          assert Prop::Limiter.throttle(:something)
-          Prop::Limiter.count(:something).must_equal(
-            bucket: 1, last_updated: @time.to_i
+            bucket: 1, last_leak_time: @time.to_i, over_limit: false
           )
         end
       end
@@ -218,7 +204,7 @@ describe Prop::Limiter do
 
       describe "when the bucket is not full" do
         it "returns the bucket" do
-          expected_bucket = { bucket: 1, last_updated: @time.to_i }
+          expected_bucket = { bucket: 1, last_leak_time: @time.to_i, over_limit: false }
           Prop::Limiter.throttle!(:something).must_equal expected_bucket
         end
 
@@ -230,7 +216,7 @@ describe Prop::Limiter do
             'cache_key',
             {
               threshold:  10,
-              interval:   1,
+              interval:   60,
               key:        'key',
               burst_rate: 100,
               strategy:   Prop::LeakyBucketStrategy,

@@ -104,16 +104,16 @@ describe Prop do
 
     describe "when use leaky bucket strategy" do
       before do
-        Prop.configure :hello, threshold: 2, interval: 10, strategy: :leaky_bucket, burst_rate: 10
+        Prop.configure :leaky, threshold: 2, interval: 10, strategy: :leaky_bucket, burst_rate: 10
 
         5.times do |i|
-          Prop.throttle!(:hello)[:bucket].must_equal i + 1
+          Prop.throttle!(:leaky)[:bucket].must_equal i + 1
         end
       end
 
       it "set the correct counter to 0" do
-        Prop.reset(:hello)
-        Prop.throttle!(:hello)[:bucket].must_equal 1
+        Prop.reset(:leaky)
+        Prop.throttle!(:leaky)[:bucket].must_equal 1
       end
     end
   end
@@ -121,24 +121,25 @@ describe Prop do
   describe "#throttled?" do
     with_each_strategy do |options|
       before do
-        Prop.configure(:hello, options.merge(threshold: 2, interval: 10))
-        Prop.configure(:world, options.merge(threshold: 2, interval: 10))
+        Prop.configure(:hello, options.merge(threshold: 2, interval: 10.seconds))
+        Prop.configure(:world, options.merge(threshold: 2, interval: 10.seconds))
       end
 
       it "return true once it was throttled" do
         2.times do
-          refute Prop.throttled?(:hello)
           refute Prop.throttle(:hello)
+          refute Prop.throttled?(:hello)
         end
 
-        assert Prop.throttled?(:hello)
         assert Prop.throttle(:hello)
+        assert Prop.throttled?(:hello)
       end
 
       it "counts different handles separately" do
           user_id = 42
-          2.times { Prop.throttle!(:hello, user_id) }
-          assert Prop.throttled?(:hello, user_id)
+          2.times { Prop.throttle(:hello, user_id) }
+          refute Prop.throttled?(:hello, user_id)
+          assert Prop.throttle(:hello, user_id)
           refute Prop.throttled?(:world, user_id)
         end
     end
@@ -240,17 +241,17 @@ describe Prop do
         10.times do |i|
           Prop.throttle!(:hello)[:bucket].must_equal i + 1
         end
-
         Time.stubs(:now).returns(@time + 30)
-        Prop.query(:hello)[:bucket].must_equal 0
+        Prop.throttle!(:hello) # forces the leak
+        Prop.query(:hello)[:bucket].must_equal 1
       end
 
-      it "increments the counter beyond the burst rate" do
+      it "does not increment the counter beyond the burst rate" do
         15.times do
           Prop.throttle!(:hello) rescue nil
         end
 
-        Prop.query(:hello)[:bucket].must_equal 15
+        Prop.query(:hello)[:bucket].must_equal 10
       end
 
       it "raises Prop::RateLimited when the bucket is full" do
