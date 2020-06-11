@@ -227,6 +227,8 @@ You can add two additional configurations: `:strategy` and `:burst_rate` to use 
 Prop will handle the details after configured, and you don't have to specify `:strategy` 
 again when using `throttle`, `throttle!` or any other methods.
 
+The leaky bucket algorithm used is "leaky bucket as a meter".
+
 ```ruby
 Prop.configure(:api_request, strategy: :leaky_bucket, burst_rate: 20, threshold: 5, interval: 1.minute)
 ```

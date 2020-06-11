@@ -3,15 +3,17 @@ sudo: false
 cache: bundler
 rvm:
   - 2.4
-  - 2.3
-  - 2.2
+  - 2.5
+  - 2.6
   - jruby-9.1.15.0
-bundler_args: ''
 gemfile:
-  - gemfiles/rails3.2.gemfile
   - gemfiles/rails4.2.gemfile
   - gemfiles/rails5.0.gemfile
   - gemfiles/rails5.1.gemfile
   - gemfiles/rails5.2.gemfile
 branches:
-  only: [master]
+  only: master
+before_install: gem update --system >/dev/null && gem install matching_bundle -v ">= 0.3.4" --no-doc && matching_bundle install
+script: matching_bundle exec rake $TASK
+env:
+  - TASK=default
