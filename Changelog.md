@@ -1,5 +1,9 @@
 # Changes
 
+## 2.5.0
+
+* Bugfix: [USERV-347] Fix leaky bucket implementation
+
 ## 2.4.0
 
 * Allow zero case for threshold when configure the prop
