@@ -59,6 +59,23 @@ describe Prop::Limiter do
         Prop::Limiter.disabled { Prop.throttle(:something) }.must_equal false
       end
 
+      it "handles concurrency" do
+        disabled_thread = Thread.new do
+          Prop.disabled do
+            Prop.throttle(:something)
+          end
+        end
+
+        enabled_thread = Thread.new do
+          Prop.throttle(:something)
+        end
+
+        disabled_thread.join
+        enabled_thread.join
+
+        Prop.count(:something).must_equal 1
+      end
+
       it "supports decrement and can below 0" do
         Prop.throttle(:something)
         Prop.count(:something).must_equal 1
