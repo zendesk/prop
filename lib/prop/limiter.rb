@@ -56,10 +56,10 @@ module Prop
       #
       # block    - a block of code within which Prop will not raise
       def disabled(&_block)
-        Thread.current[:disabled] = true
+        Thread.current[:prop_disabled] = true
         yield
       ensure
-        Thread.current[:disabled] = false
+        Thread.current[:prop_disabled] = false
       end
 
       # Public: Records a single action for the given handle/key combination.
@@ -174,7 +174,7 @@ module Prop
       end
 
       def disabled?
-        Thread.current.key?(:disabled) && Thread.current[:disabled]
+        Thread.current.key?(:prop_disabled) && Thread.current[:prop_disabled]
       end
 
       def prepare(handle, key, params)
