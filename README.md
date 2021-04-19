@@ -1,5 +1,5 @@
 
-# Prop [![Build Status](https://travis-ci.org/zendesk/prop.png)](https://travis-ci.org/zendesk/prop)
+# Prop ![Build status](https://github.com/zendesk/prop/workflows/ci/badge.svg)
 
 A gem to rate limit requests/actions of any kind.<br/>
 Define thresholds, register usage and finally act on exceptions once thresholds get exceeded.
