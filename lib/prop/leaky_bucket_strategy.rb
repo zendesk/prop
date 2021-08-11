@@ -62,7 +62,7 @@ module Prop
         [false, bucket]
       end
 
-      def reset(cache_key)
+      def reset(cache_key, options = {})
         cache.write(cache_key, zero_counter, raw: true)
       end
 
