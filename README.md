@@ -18,7 +18,7 @@ To store values, prop needs a cache:
 Prop.cache = Rails.cache # needs read/write/increment methods
 ```
 
-Prop does not expire its used keys, so use memcached or similar, not redis.
+When using the interval strategy, prop sets a key expiry to its interval.  Because the leaky bucket strategy does not set a ttl, it is best to use memcached or similar for all prop caching, not redis.
 
 ## Setting a Callback
 

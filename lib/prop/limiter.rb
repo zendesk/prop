@@ -120,7 +120,7 @@ module Prop
       # Returns nothing
       def reset(handle, key = nil, options = {})
         _options, cache_key, strategy = prepare(handle, key, options)
-        strategy.reset(cache_key)
+        strategy.reset(cache_key, options)
       end
 
       # Public: Counts the number of times the given handle/key combination has been hit in the current window
