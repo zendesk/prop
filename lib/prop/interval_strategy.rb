@@ -16,12 +16,12 @@ module Prop
       # options argument is kept for api consistency for all strategies
       def increment(cache_key, amount, options = {})
         raise ArgumentError, "Change amount must be a Integer, was #{amount.class}" unless amount.is_a?(Integer)
-        cache.increment(cache_key, amount) || (cache.write(cache_key, amount, raw: true, expires_in: options.fetch(:interval, nil)) && amount) # WARNING: potential race condition
+        cache.increment(cache_key, amount, expires_in: options.fetch(:interval, nil)) || (cache.write(cache_key, amount, raw: true, expires_in: options.fetch(:interval, nil)) && amount) # WARNING: potential race condition
       end
 
       def decrement(cache_key, amount, options = {})
         raise ArgumentError, "Change amount must be a Integer, was #{amount.class}" unless amount.is_a?(Integer)
-        cache.decrement(cache_key, amount) || (cache.write(cache_key, 0, raw: true, expires_in: options.fetch(:interval, nil)) && 0) # WARNING: potential race condition
+        cache.decrement(cache_key, amount, expires_in: options.fetch(:interval, nil)) || (cache.write(cache_key, 0, raw: true, expires_in: options.fetch(:interval, nil)) && 0) # WARNING: potential race condition
       end
 
       def reset(cache_key, options = {})
