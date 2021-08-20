@@ -5,7 +5,7 @@ describe Prop::Limiter do
   context "both strategies are being used simultaneously" do
     before do
       cache = setup_fake_store
-      def cache.increment(_, _)
+      def cache.increment(_, _, _)
         sleep 0.0001
       end
 
