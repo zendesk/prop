@@ -10,7 +10,7 @@ module Prop
       end
 
       def counter(cache_key, options)
-        cache.read(cache_key).to_i
+        cache.read(cache_key, raw: true).to_i
       end
 
       # options argument is kept for api consistency for all strategies
