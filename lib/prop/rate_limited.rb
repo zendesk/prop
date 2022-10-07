@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Prop
   class RateLimited < StandardError
-    attr_accessor :handle, :cache_key, :retry_after, :description, :first_throttled
+    attr_accessor :handle, :cache_key, :retry_after, :description, :first_throttled, :threshold
 
     def initialize(options)
       self.handle    = options.fetch(:handle)
@@ -11,6 +11,8 @@ module Prop
 
       interval  = options.fetch(:interval).to_i
       self.retry_after = interval - Time.now.to_i % interval
+
+      self.threshold = options.fetch(:threshold)
 
       super(options.fetch(:strategy).threshold_reached(options))
     end
