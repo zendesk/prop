@@ -1,16 +1,20 @@
 # Changes
 
+## 2.7.0
+
+* Feature: Add threshold to Prop::RateLimited exception
+
 ## 2.6.1
 
-* Bugfix: [CCORE-331] Set expires_in on increment and decrement
+* Bugfix: Set expires_in on increment and decrement
 
 ## 2.6.0
 
-* [CCORE-331] Use interval value as the ttl when writing to cache
+* Use interval value as the ttl when writing to cache
 
 ## 2.5.0
 
-* Bugfix: [USERV-347] Fix leaky bucket implementation
+* Bugfix: Fix leaky bucket implementation
 
 ## 2.4.0
 
