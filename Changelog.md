@@ -1,5 +1,9 @@
 # Changes
 
+## 2.8.0
+
+* Specify raw when reading raw cache entries [PR](https://github.com/zendesk/prop/pull/45)
+
 ## 2.7.0
 
 * Feature: Add threshold to Prop::RateLimited exception
