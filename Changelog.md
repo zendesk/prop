@@ -1,5 +1,10 @@
 # Changes
 
+## Unreleased
+
+* Drop Ruby < 2.5
+* Test with Ruby 3.2
+
 ## 2.8.0
 
 * Specify raw when reading raw cache entries [PR](https://github.com/zendesk/prop/pull/45)
