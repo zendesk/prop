@@ -43,7 +43,7 @@ Prop.configure(:mails_per_hour, threshold: 0, interval: 1.hour, description: "Al
 ```
 
 ```ruby
-# Throws Prop::RateLimitExceededError if the threshold/interval has been reached
+# Throws Prop::RateLimited if the threshold/interval has been reached
 Prop.throttle!(:mails_per_hour)
 
 # Prop can be used to guard a block of code
