@@ -1,12 +1,9 @@
 ---
 name: CI
-on:
-  push:
-    branches:
-      - '**'
+on: [push]
 jobs:
   main:
-    name: Ruby ${{ matrix.ruby }}
+    name: Tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -20,9 +17,14 @@ jobs:
           - '3.2'
           - '3.3'
           - jruby
+        gemfile:
+          - rails7.0
+          - rails7.1
+    env:
+      BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
-      - uses: zendesk/checkout@v2
-      - uses: zendesk/setup-ruby@v1
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true

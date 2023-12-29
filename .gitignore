@@ -19,5 +19,3 @@ rdoc
 pkg
 vendor
 
-## PROJECT::SPECIFIC
-Gemfile.lock

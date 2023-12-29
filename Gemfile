@@ -1,9 +1,1 @@
-source 'https://rubygems.org'
-
-gemspec
-
-gem 'activesupport'
-gem 'bump'
-gem 'maxitest'
-gem 'mocha'
-gem 'rake'
+eval_gemfile "gemfiles/rails7.0.gemfile"
