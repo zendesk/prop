@@ -7,6 +7,8 @@ require 'mocha/minitest'
 
 require 'time'
 require 'prop'
+require 'active_support'
+require 'active_support/core_ext/numeric/time'
 require 'active_support/cache'
 require 'active_support/cache/memory_store'
 require 'active_support/notifications'
