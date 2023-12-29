@@ -10,6 +10,6 @@ Gem::Specification.new "prop", Prop::VERSION do |s|
   s.email    = 'primdahl@me.com'
   s.homepage = 'https://github.com/zendesk/prop'
 
-  s.required_ruby_version = '>= 2.5'
+  s.required_ruby_version = '>= 2.7'
   s.files = `git ls-files lib LICENSE README.md`.split("\n")
 end
