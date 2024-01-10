@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-* Drop Ruby < 2.5
-* Test with Ruby 3.2
+* Drop Ruby < 2.7
+* Test with Ruby 3.2 and 3.3
+* Run tests with both Active Support 7.0 and 7.1
 
 ## 2.8.0
 
