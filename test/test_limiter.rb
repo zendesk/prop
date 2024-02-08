@@ -67,6 +67,22 @@ describe Prop::Limiter do
         Prop.count(:something).must_equal -4
       end
 
+      describe "when there is a after_evaluated callback" do
+        it "invokes the callback" do
+          Prop.after_evaluated do |handle, counter, options|
+            @handle   = handle
+            @counter  = counter
+            @options  = options
+          end
+
+          Prop.throttle(:something)
+
+          @handle.must_equal :something
+          @counter.must_equal 1
+          @options.must_equal({ threshold: 10, interval: 10, key: "", strategy: Prop::IntervalStrategy })
+        end
+      end
+
       describe "and the threshold has been reached" do
         before { Prop::IntervalStrategy.stubs(:compare_threshold?).returns(true) }
 
@@ -188,6 +204,22 @@ describe Prop::Limiter do
           Prop::Limiter.count(:something).must_equal(
             bucket: 1, last_leak_time: @time.to_i, over_limit: false
           )
+        end
+      end
+
+      describe "when there is a after_evaluated callback" do
+        it "invokes the callback" do
+          Prop.after_evaluated do |handle, counter, options|
+            @handle   = handle
+            @counter  = counter
+            @options  = options
+          end
+
+          Prop.throttle(:something)
+
+          @handle.must_equal :something
+          @counter.must_equal 1
+          @options.keys.sort.must_equal [:bucket, :burst_rate, :interval, :key, :last_leak_time, :over_limit, :strategy, :threshold]
         end
       end
     end
