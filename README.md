@@ -31,6 +31,17 @@ Prop.before_throttle do |handle, key, threshold, interval|
 end
 ```
 
+## Setting an After Evaluated Callback
+
+You can define an optional callback that is invoked when a rate limit is checked. The callback will be invoked regardless
+of the result of the evaluation.
+
+```ruby
+Prop.after_evaluated do |handle, counter, options|
+  Rails.logger.info "Prop #{handle} has just been check. current value: #{counter}"
+end
+````
+
 ## Defining thresholds
 
 Example: Limit on accepted emails per hour from a given user, by defining a threshold and interval (in seconds):

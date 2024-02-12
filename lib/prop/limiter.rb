@@ -9,7 +9,7 @@ module Prop
   class Limiter
 
     class << self
-      attr_accessor :handles, :before_throttle_callback, :cache
+      attr_accessor :handles, :before_throttle_callback, :cache, :after_evaluated_callback
 
       def read(&blk)
         raise "Use .cache = "
@@ -37,6 +37,10 @@ module Prop
 
       def before_throttle(&blk)
         self.before_throttle_callback = blk
+      end
+
+      def after_evaluated(&blk)
+        self.after_evaluated_callback = blk
       end
 
       # Public: Registers a handle for rate limiting
@@ -150,12 +154,17 @@ module Prop
         return [false, strategy.zero_counter] if disabled?
 
         if leaky_bucket_strategy?(strategy)
-          return Prop::LeakyBucketStrategy._throttle_leaky_bucket(handle, key, cache_key, options)
+          is_over_limit, bucket_info_hash = Prop::LeakyBucketStrategy._throttle_leaky_bucket(handle, key, cache_key, options)
+          bucket_counter = bucket_info_hash.fetch(:bucket)
+          after_evaluated_callback.call(handle, bucket_counter, options.merge(bucket_info_hash)) if after_evaluated_callback
+          return [is_over_limit, bucket_info_hash]
         end
 
         counter = options.key?(:decrement) ?
           strategy.decrement(cache_key, options.fetch(:decrement), options) :
           strategy.increment(cache_key, options.fetch(:increment, 1), options)
+
+        after_evaluated_callback.call(handle, counter, options) if after_evaluated_callback
 
         if strategy.compare_threshold?(counter, :>, options)
           before_throttle_callback &&
