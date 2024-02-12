@@ -2,9 +2,12 @@
 
 ## Unreleased
 
+## 2.9.0
+
 * Drop Ruby < 2.7
 * Test with Ruby 3.2 and 3.3
 * Run tests with both Active Support 7.0 and 7.1
+* Add after_evaluated callback support
 
 ## 2.8.0
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    prop (2.8.0)
+    prop (2.9.0)
 
 GEM
   remote: https://rubygems.org/
@@ -11,7 +11,7 @@ GEM
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
-    concurrent-ruby (1.2.2)
+    concurrent-ruby (1.2.3)
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     maxitest (4.5.0)
@@ -36,4 +36,4 @@ DEPENDENCIES
   rake
 
 BUNDLED WITH
-   2.4.22
+   2.5.6
