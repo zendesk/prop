@@ -21,7 +21,15 @@ module Prop
 
       def decrement(cache_key, amount, options = {})
         raise ArgumentError, "Change amount must be a Integer, was #{amount.class}" unless amount.is_a?(Integer)
-        cache.decrement(cache_key, amount, expires_in: options.fetch(:interval, nil)) || (cache.write(cache_key, 0, raw: true, expires_in: options.fetch(:interval, nil)) && 0) # WARNING: potential race condition
+
+        new_value = cache.decrement(cache_key, amount, expires_in: options.fetch(:interval, nil))
+
+        # In ActiveSupport < 7.1, decrement on a new key does nothing and returns nil.
+        # In ActiveSupport >= 7.1, decrement on a new key sets its value to 0 first and then decrements, returning a negative value.
+        if new_value.nil? || new_value == -amount
+          # WARNING: potential race condition
+          cache.write(cache_key, 0, raw: true, expires_in: options.fetch(:interval, nil)) && 0
+        end
       end
 
       def reset(cache_key, options = {})
