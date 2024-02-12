@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    prop (2.8.0)
+    prop (2.9.0)
 
 GEM
   remote: https://rubygems.org/
