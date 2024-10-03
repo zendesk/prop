@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Drop support for Ruby below 3.1
+* Add tests with Active Support 7.2 and Rails main
 
 ## 2.9.0
 
