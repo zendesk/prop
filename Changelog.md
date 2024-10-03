@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Drop support for Ruby below 3.1
+
 ## 2.9.0
 
 * Drop Ruby < 2.7
