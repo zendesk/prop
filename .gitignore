@@ -19,3 +19,4 @@ rdoc
 pkg
 vendor
 
+gemfiles/rails_main.gemfile.lock
