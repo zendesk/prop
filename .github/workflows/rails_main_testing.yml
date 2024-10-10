@@ -15,7 +15,7 @@ jobs:
         ruby:
           - '3.3'
     env:
-      BUNDLE_GEMFILE: gemfiles/rails_main_native.gemfile
+      BUNDLE_GEMFILE: gemfiles/rails_main.gemfile
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
