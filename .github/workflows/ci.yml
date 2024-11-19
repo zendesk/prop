@@ -20,6 +20,7 @@ jobs:
         include:
           - { ruby: '3.3', gemfile: 'rails_main' }
     env:
+      RUBYOPT: --enable=frozen-string-literal
       BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - uses: actions/checkout@v4
