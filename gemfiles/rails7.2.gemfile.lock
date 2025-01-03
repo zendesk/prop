@@ -26,9 +26,9 @@ GEM
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     logger (1.6.1)
-    maxitest (4.5.0)
-      minitest (>= 5.0.0, < 5.19.0)
-    minitest (5.18.1)
+    maxitest (5.8.0)
+      minitest (>= 5.14.0, < 5.26.0)
+    minitest (5.25.4)
     mocha (2.4.5)
       ruby2_keywords (>= 0.0.5)
     rake (13.2.1)
@@ -43,10 +43,10 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (~> 7.2.0)
-  maxitest (< 5)
+  maxitest
   mocha
   prop!
   rake
 
 BUNDLED WITH
-   2.5.9
+   2.6.2

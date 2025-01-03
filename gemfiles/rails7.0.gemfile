@@ -1,3 +1,6 @@
 eval_gemfile 'common.rb'
 
 gem 'activesupport', '~> 7.0.0'
+gem 'base64'
+gem 'bigdecimal'
+gem 'mutex_m'
