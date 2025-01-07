@@ -2,6 +2,6 @@ source 'https://rubygems.org'
 
 gemspec path: '../'
 
-gem 'maxitest', '< 5'
+gem 'maxitest'
 gem 'mocha'
 gem 'rake'
