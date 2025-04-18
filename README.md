@@ -1,4 +1,3 @@
-
 # Prop ![Build status](https://github.com/zendesk/prop/workflows/ci/badge.svg)
 
 A gem to rate limit requests/actions of any kind.<br/>
@@ -40,7 +39,7 @@ of the result of the evaluation.
 Prop.after_evaluated do |handle, counter, options|
   Rails.logger.info "Prop #{handle} has just been check. current value: #{counter}"
 end
-````
+```
 
 ## Defining thresholds
 
@@ -246,6 +245,20 @@ Prop.configure(:api_request, strategy: :leaky_bucket, burst_rate: 20, threshold:
 
 * `:threshold` value here would be the "leak rate" of leaky bucket algorithm.
 
+### Releasing a new version
+A new version is published to RubyGems.org every time a change to `version.rb` is pushed to the `main` branch.
+In short, follow these steps:
+1. Update `version.rb`,
+2. update version in all `Gemfile.lock` files,
+3. merge this change into `main`, and
+4. look at [the action](https://github.com/zendesk/prop/actions/workflows/publish.yml) for output.
+
+To create a pre-release from a non-main branch:
+1. change the version in `version.rb` to something like `1.2.0.pre.1` or `2.0.0.beta.2`,
+2. push this change to your branch,
+3. go to [Actions → “Publish to RubyGems.org” on GitHub](https://github.com/zendesk/prop/actions/workflows/publish.yml),
+4. click the “Run workflow” button,
+5. pick your branch from a dropdown.
 
 ## License
 
