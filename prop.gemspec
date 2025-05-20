@@ -1,5 +1,4 @@
-$LOAD_PATH.unshift "lib"
-require "prop"
+require_relative "lib/prop/version"
 
 Gem::Specification.new "prop", Prop::VERSION do |s|
   s.license = "Apache License Version 2.0"
